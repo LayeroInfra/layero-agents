@@ -14,7 +14,7 @@
 ## Установка
 
 ```
-/plugin marketplace add LayeroInfra/layero-claude
+/plugin marketplace add LayeroInfra/layero-agents
 /plugin install layero@layero-claude
 ```
 
@@ -60,7 +60,7 @@ export LAYERO_TOKEN="<ваш токен>"
 
 | IDE | Установка |
 |---|---|
-| **Cursor** | Плагин: **Customize → Plugins → Add** и репозиторий `LayeroInfra/layero-claude` |
+| **Cursor** | Плагин: **Customize → Plugins → Add** и репозиторий `LayeroInfra/layero-agents` |
 | **Claude Code** | Две команды выше |
 | **Codex** | `codex mcp add layero --url https://mcp.layero.ru/mcp --bearer-token-env-var LAYERO_TOKEN` |
 
@@ -137,14 +137,14 @@ plugin, and the source of record for Layero's remote MCP server.
 ### Install
 
 ```
-/plugin marketplace add LayeroInfra/layero-claude
+/plugin marketplace add LayeroInfra/layero-agents
 /plugin install layero@layero-claude
 ```
 
 | IDE | How |
 |---|---|
 | **Claude Code** | the two commands above |
-| **Cursor** | as a plugin: **Customize → Plugins → Add**, repository `LayeroInfra/layero-claude` |
+| **Cursor** | as a plugin: **Customize → Plugins → Add**, repository `LayeroInfra/layero-agents` |
 | **Codex** | `codex mcp add layero --url https://mcp.layero.ru/mcp --bearer-token-env-var LAYERO_TOKEN` |
 
 ⚠️ The **Add to Cursor** one-click link (`cursor://…/mcp/install`) installs
