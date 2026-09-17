@@ -30,8 +30,30 @@
 | `stage` | `name`: `clone`/`install`/`build`/`upload`/`activate` | Стадия сборки. |
 | `build_log` | `line`, `stream` | Сырой лог. Пересылать только строки с ошибками. |
 | `ready` | `url`, `dashboard_url`, `deploy_id` | **Финал.** `url` — живой публичный адрес, показать как есть и остановиться. `dashboard_url` — панель, не сайт. `preview_url`, `edge_ready`, `edge_eta_seconds` — legacy, не ждать. |
+| `claimable` | `project_id`, `slug`, `url`, `claim_url`, `expires_at` | Деплой без аккаунта (`--claim`): временный проект на 72 часа. Приходит **до** `ready`. Передать человеку `claim_url` — забрать сайт может только он, в панели. |
 | `promoted` | `url`, `deploy_id` | Апекс переведён на деплой (`layero promote`, `deploy --promote`). |
 | `error` | `code`, `next_action`, `message` | Следовать `next_action`. |
+
+## События остальных команд
+
+| событие | команда | поля |
+|---|---|---|
+| `me` | `whoami` | `id`, `username`, `email`, `github_login` |
+| `projects` | `projects list` | `projects[]`: `id`, `slug`, `name`, `organization`, `url`, `source_type`, `repo`, `status` |
+| `organizations` | `orgs list` | `organizations[]`: `id`, `slug`, `kind`, `role` |
+| `project_created` | `projects create --repo` | как у деплоя, плюс `url`, `repo`, `branch` |
+| `source_connected` | `sources connect`, `projects create` | `org`, `connection_id`, `provider`, `account` |
+| `webhook_installed` / `webhook_unavailable` | `projects create` | `project`, `url`; у `webhook_unavailable` — `hint`. Без вебхука push не собирается — сказать человеку, дать `url` для ручной настройки. |
+| `sources` | `sources list` | `org`, `providers[]` (`id`, `title`, `self_hosted`, `webhook_supported`, `token_hint`), `connections[]` (`id`, `provider`, `account`, `status`, `projects_count`, `token_expiry_state`, `last_error`) |
+| `source_repos` | `sources repos` | `org`, `connection_id`, `repos[]` (`path`, `name`, `default_branch`, `private`, `can_admin`) |
+| `environments` | `envs list` | `project`, `environments[]` (`id`, `branch`, `url`, `hostname`, `active_deploy_id`, `active_deploy_at`, `production`) |
+| `project_deleted` | `projects delete --yes` | `project_id`, `slug` |
+| `project_linked` | `link` | `project_id`, `slug`, `url`, `status` |
+| `hooks` / `hook_created` / `hook_deleted` | `hooks *` | `project`, `hooks[]` / `id`, `name`, `branch`, `target`, `url` / `id` |
+| `init_done` | `init` | `framework`, `agent_docs[]` (`file`, `result`), `project_json` |
+| `logged_out` | `logout` | `config_path` |
+| `claim_status` | `claim status` | `code`, `status`, `claimed`, `expires_at`, `url`, `claim_url` |
+| `claim_accept` | `claim accept` | `code`, `claim_url`, `opened` — в агентском режиме браузер не открывается, ссылку показать человеку |
 
 События `data_*` (Data API: `layero data …`) описаны в полном справочнике.
 
@@ -51,6 +73,12 @@
 | `cli_deploys_disabled` | CLI-деплои выключены в проекте | Project Settings → CLI deploys |
 | `invalid_type` | Неизвестный `--type` | Убрать флаг или валидный пресет |
 | `invalid_choice` | Невалидный выбор в non-TTY | Явный флаг |
+| `branch_unsupported` | `deploy --branch`: архив всегда идёт в окружение `cli`, флаг превью не даёт. Ничего не загружено | Подключить репозиторий (`projects create --repo`) и пушить в ветку; у проекта с репозиторием в `next_action` — куда пушить |
+| `repo_format` / `account_not_found` / `repo_not_found` / `repo_already_imported` / `source_connect_failed` | `projects create --repo`: формат, нет подключения к провайдеру, репозиторий не виден, уже привязан, привязка сорвалась | `next_action`: `sources list`, `sources connect`, `sources repos`, `link` |
+| `provider_unknown` / `token_missing` / `source_rejected` / `connection_not_found` | `sources connect` / `sources repos` | Список провайдеров, `--token-stdin`, `token_hint` провайдера, `sources list` |
+| `hook_not_found` | `hooks delete` с чужим id | `hooks list` |
+| `claimable_unavailable` | Деплой без аккаунта не включён на платформе | `layero login` или `LAYERO_TOKEN` |
+| `claim_unknown` | Нет заявки в `.layero/project.json`, код неверный или истёк | Передать код; новый — `deploy --claim` |
 | `prebuilt_no_dir` / `prebuilt_no_index` | Папка `--prebuilt` не найдена / без `index.html` | `--prebuilt ./dist` со собранным `index.html` |
 | `deploy_not_started` | Сборка не стартовала | Повторить; если повторяется — проект в панели |
 | `deploy_failed` | Сборка не дошла до `ready` | Логи по ссылке из `next_action` |
@@ -65,6 +93,17 @@
 `ready`, `building`, `failed`, `cancelled`. На практике встречаются ровно
 `deploy_failed` и `deploy_cancelled`; кодов `deploy_error` и
 `deploy_timed_out` не существует — не закладывайся на них.
+
+## Коды выхода
+
+| код | класс | примеры |
+|---|---|---|
+| 0 | успех | |
+| 1 | прочее | `plan_limit`, `forbidden`, `confirmation_required`, `repeated_failure` |
+| 2 | нужен вход | `auth_required`, `auth_expired`, `auth_timeout` |
+| 3 | не найдено | `project_unknown`, `project_not_found`, `org_unknown`, `hook_not_found`, `claim_unknown` |
+| 4 | неверный ввод | `invalid_type`, `prebuilt_no_dir`, `prebuilt_no_index`, `branch_unsupported`, `repo_format`, `token_missing` |
+| 5 | удалённая ошибка | `deploy_failed`, `deploy_cancelled`, `deploy_not_started`, `internal`, `http_5xx` |
 
 ## Минимальный поведенческий блок
 
