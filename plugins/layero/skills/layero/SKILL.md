@@ -83,12 +83,16 @@ LAYERO_TOKEN=… npx layero@latest deploy --project <slug> --json --yes
 Сервер `https://mcp.layero.ru/mcp` (Streamable HTTP), имя в конфиге
 клиента — `layero`. Подключение: `npx -y add-mcp https://mcp.layero.ru/mcp`
 или плагин Claude Code / Cursor из `LayeroInfra/layero-agents`. Вход —
-OAuth (клиент откроет браузер сам; появится автоматически), для CI —
+OAuth (клиент откроет браузер сам при подключении), для CI —
 заголовок `Authorization: Bearer $LAYERO_TOKEN`.
 
 Группы инструментов:
 
-- **аккаунт** — `whoami`, `my_projects`;
+- **аккаунт и проекты** — `whoami`, `my_projects`, `list_sources` (провайдеры
+  и подключения), `import_repo` (проект из репозитория — путь (a) без панели;
+  токен провайдера подключает человек в панели, не агент), `project_create`
+  (пустой проект под будущий `publish_site`), `list_environments` (ветки с
+  адресами и последними сборками);
 - **сайт** — `site_status`, `env_vars`, `read_site`, `site_screenshot`,
   `site_issues`, `refactor_site`, `check_copy`, `check_performance`;
 - **деплои** — `list_deploys`, `deploy_logs`, `diagnose_deploy`,

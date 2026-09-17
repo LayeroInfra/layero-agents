@@ -8,6 +8,10 @@
         "ideToolTitles": {
           "whoami": "Who Am I",
           "my_projects": "My Projects",
+          "list_sources": "List Sources",
+          "import_repo": "Import Repository",
+          "list_environments": "List Environments",
+          "project_create": "Create Project",
           "site_status": "Site Status",
           "env_vars": "Environment Variables",
           "connect_analytics": "Connect Analytics",

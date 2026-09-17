@@ -19,7 +19,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 MCP_NAME = "layero"
 OWNER = {"name": "Layero", "url": "https://layero.ru"}
 HOMEPAGE = "https://docs.layero.ru/agents/"
@@ -52,6 +52,10 @@ TOKEN_HEADER_DESCRIPTION = (
 TOOL_TITLES = {
     "whoami": "Who Am I",
     "my_projects": "My Projects",
+    "list_sources": "List Sources",
+    "import_repo": "Import Repository",
+    "list_environments": "List Environments",
+    "project_create": "Create Project",
     "site_status": "Site Status",
     "env_vars": "Environment Variables",
     "connect_analytics": "Connect Analytics",

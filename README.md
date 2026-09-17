@@ -43,8 +43,8 @@ LAYERO_TOKEN=… npx layero@latest deploy --project <slug> --json --yes
    папки через `npx layero@latest deploy --json`, эксплуатация живого сайта.
 2. **MCP-сервер** — `npx -y add-mcp https://mcp.layero.ru/mcp` подключает
    удалённый сервер (Streamable HTTP) во все установленные клиенты. Вход —
-   OAuth: клиент сам откроет браузер (появится автоматически). Локально
-   ничего не запускается.
+   OAuth: клиент сам откроет браузер при подключении; для CI — заголовок
+   `Authorization: Bearer $LAYERO_TOKEN`. Локально ничего не запускается.
 3. **Плагины** — Claude Code (`claude plugin marketplace add LayeroInfra/layero-agents
    && claude plugin install layero@layero`) и Cursor (**Customize → Plugins →
    Add**, репозиторий `LayeroInfra/layero-agents`) ставят навык и MCP одной
