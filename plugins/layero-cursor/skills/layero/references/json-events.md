@@ -43,7 +43,11 @@
 | `organizations` | `orgs list` | `organizations[]`: `id`, `slug`, `kind`, `role` |
 | `project_created` | `projects create --repo` | как у деплоя, плюс `url`, `repo`, `branch` |
 | `source_connected` | `sources connect`, `projects create` | `org`, `connection_id`, `provider`, `account` |
-| `webhook_installed` / `webhook_unavailable` | `projects create` | `project`, `url`; у `webhook_unavailable` — `hint`. Без вебхука push не собирается — сказать человеку, дать `url` для ручной настройки. |
+| `webhook_installed` / `webhook_unavailable` | `projects create` | `project`, `url` (у GitHub App поля `url` нет: вебхук — часть установки); у `webhook_unavailable` — `hint`. Без вебхука push не собирается — сказать человеку, дать `url` для ручной настройки. |
+| `setup_applied` | `projects create` | `project`, `framework`, `build_cmd`, `output_dir`, `layero_found`. Команда сама применила настройки из детекта — как кнопка «Начать деплой» в панели; за ним идёт `deploy_started` |
+| `deploy_started` | `projects create`, `deploy` | `deploy_id`; у `projects create` ещё `project`, `url`. Первая сборка запущена — дальше `deploys list --project <slug>` или MCP `site_status` |
+| `setup_pending` | `projects create --no-deploy` | `project`, `url`, `hint`. Проект оставлен в мастере: сборок не будет, пока человек не завершит настройку по `url` |
+| `setup_failed` | `projects create` | `project`, `reason`, `url`, `hint`. Проект **создан** (выход 0), но детект, настройка или запуск сборки не удались — сказать человеку завершить в панели по `url` |
 | `sources` | `sources list` | `org`, `providers[]` (`id`, `title`, `self_hosted`, `webhook_supported`, `token_hint`), `connections[]` (`id`, `provider`, `account`, `status`, `projects_count`, `token_expiry_state`, `last_error`) |
 | `source_repos` | `sources repos` | `org`, `connection_id`, `repos[]` (`path`, `name`, `default_branch`, `private`, `can_admin`) |
 | `environments` | `envs list` | `project`, `environments[]` (`id`, `branch`, `url`, `hostname`, `active_deploy_id`, `active_deploy_at`, `production`) |

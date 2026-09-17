@@ -1,7 +1,7 @@
 {
   "name": "layero",
   "description": "Деплой и эксплуатация сайтов на Layero — хостинге с серверами сборки в России: деплои, домены, переменные окружения, Data API. Навык и MCP-сервер.",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "author": {
     "name": "Layero",
     "url": "https://layero.ru"

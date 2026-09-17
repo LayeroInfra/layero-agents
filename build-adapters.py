@@ -19,7 +19,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 
-VERSION = "2.1.0"
+VERSION = "2.1.1"
 MCP_NAME = "layero"
 OWNER = {"name": "Layero", "url": "https://layero.ru"}
 HOMEPAGE = "https://docs.layero.ru/agents/"
