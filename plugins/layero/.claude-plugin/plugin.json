@@ -1,22 +1,22 @@
 {
   "name": "layero",
-  "description": "Собрать лендинг прямо в чате Claude Code и задеплоить его на Layero — хостинг с серверами и CDN в России.",
-  "version": "1.0.0",
+  "description": "Деплой и эксплуатация сайтов на Layero — хостинге с серверами сборки в России: деплои, домены, переменные окружения, Data API. Навык и MCP-сервер.",
+  "version": "2.0.0",
   "author": {
     "name": "Layero",
     "url": "https://layero.ru"
   },
-  "homepage": "https://docs.layero.ru/plugin/intro",
-  "repository": "https://github.com/LayeroInfra/layero-claude",
+  "homepage": "https://docs.layero.ru/agents/",
+  "repository": "https://github.com/LayeroInfra/layero-agents",
   "license": "MIT",
   "keywords": [
     "deploy",
     "deployment",
     "hosting",
-    "cdn",
-    "landing-page",
     "static-site",
+    "ssr",
     "russia",
-    "mcp"
+    "mcp",
+    "data-api"
   ]
 }

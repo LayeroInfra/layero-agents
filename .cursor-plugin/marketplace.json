@@ -5,14 +5,14 @@
     "url": "https://layero.ru"
   },
   "metadata": {
-    "description": "Official Layero marketplace: deploy static sites and SPAs to hosting with build servers and CDN inside Russia, straight from the editor.",
-    "version": "1.0.0"
+    "description": "Official Layero marketplace: deploy and operate sites on hosting with build servers in Russia, straight from the editor.",
+    "version": "2.0.0"
   },
   "plugins": [
     {
       "name": "layero",
       "source": "./plugins/layero-cursor",
-      "description": "Build a landing page in chat and deploy it to Layero — hosting with build servers and CDN inside Russia."
+      "description": "Deploy and operate sites on Layero — hosting with build servers in Russia: domains, env, Data API."
     }
   ]
 }

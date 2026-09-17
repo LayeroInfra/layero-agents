@@ -1,0 +1,136 @@
+---
+description: "Deploying to Layero and operating sites hosted there: CLI JSON events, MCP tools, layero.json, git providers"
+globs: package.json, vite.config.*, next.config.*, astro.config.*, nuxt.config.*, svelte.config.*, layero.json, **/.layero/project.json
+alwaysApply: false
+---
+# Layero
+
+Layero — платформа хостинга и деплоя (как Vercel), серверы сборки и раздача
+внутри России. Проект привязывается к репозиторию или заливается из папки,
+платформа собирает его и раздаёт на `<проект>.layero.app`; есть кастомные
+домены, превью-ветки, runtime-приложения, переменные окружения, аналитика и
+базы Postgres с Data API. Панель — `https://app.layero.ru`, документация —
+`https://docs.layero.ru`.
+
+## Три пути — выбери по ситуации
+
+| Ситуация | Путь |
+|---|---|
+| (a) Есть репозиторий на GitHub, GitVerse, GitLab, GitFlic или SourceCraft | Подключить его в панели: **Создать проект → Импорт из репозитория**. Дальше push в ветку = превью, push в `main` = прод. Подробности — [references/git-providers.md](../skills/layero/references/git-providers.md). |
+| (b) Есть папка с кодом, репозитория нет или он не нужен | `npx layero@latest deploy --json` — CLI пакует папку, платформа собирает. Готовую статику можно опубликовать и через MCP `publish_site`. |
+| (c) Сайт уже на Layero | Диагностика (`diagnose_deploy` в MCP / `npx layero@latest diagnose`), логи, откат, домены, env, аналитика, Data API — через MCP или CLI. |
+
+Критерий: пользователь работает с репозиторием — (a); просит «выложи вот эту
+папку» — (b); спрашивает про уже живой сайт — (c). Не превращай (b) в (a):
+`git init` ради деплоя не нужен.
+
+## CLI
+
+```bash
+npx layero@latest deploy --json
+```
+
+`--json` включает JSON-lines: по одному объекту на строку stdout. Разбирай
+поток по полю `event`, не парси человекочитаемый текст. Внутри агента и при
+не-TTY stdout режим включается сам.
+
+Если в папке нет `.layero/project.json` — сначала `npx layero@latest init`:
+он определит фреймворк, запишет конфиг и добавит блок правил в `AGENTS.md`.
+
+Главные события:
+
+- `auth_required` — `url` и `user_code`. Покажи `url` кликабельной ссылкой,
+  CLI сам дождётся входа (поллинг раз в 2 с, токен кэшируется в
+  `~/.layero/config.json`). Callback на localhost нет — браузер может быть
+  на другой машине, работает из SSH, Docker и песочниц.
+- `detected` — фреймворк, команда сборки, папка результата. Не переопределяй,
+  если детект не ошибся явно.
+- `build_log` — сырой лог; пересылай только строки с ошибками.
+- `ready` — `url` = живой адрес сайта. Показывай **как есть**, никогда не
+  собирай хост из шаблона. `dashboard_url` — панель, а не сайт.
+  `preview_url` и `edge_ready` — legacy, не ждать их.
+- `error` — стабильный `code` и `next_action`. Следуй `next_action`.
+
+Повторный деплой — та же команда: первый запуск создаёт проект, следующие
+переиспользуют его; коммит между запусками не нужен. Полный список событий,
+полей и кодов ошибок — [references/json-events.md](../skills/layero/references/json-events.md).
+
+### CI
+
+В раннере браузерный вход невозможен — нужен токен: `npx layero@latest token create`
+или `https://app.layero.ru/settings/cli`.
+
+```bash
+LAYERO_TOKEN=… npx layero@latest deploy --project <slug> --json --yes
+```
+
+`LAYERO_TOKEN` перебивает кэш локального входа. `--yes` пропускает
+подтверждение, которое иначе ждало бы вечно. `--project`, а не `--name`:
+`--name` только называет проект при создании, и пайплайн из чистого
+чекаута без `.layero/project.json` создавал бы новый проект на каждом
+прогоне.
+
+## MCP
+
+Сервер `https://mcp.layero.ru/mcp` (Streamable HTTP), имя в конфиге
+клиента — `layero`. Подключение: `npx -y add-mcp https://mcp.layero.ru/mcp`
+или плагин Claude Code / Cursor из `LayeroInfra/layero-agents`. Вход —
+OAuth (клиент откроет браузер сам; появится автоматически), для CI —
+заголовок `Authorization: Bearer $LAYERO_TOKEN`.
+
+Группы инструментов:
+
+- **аккаунт** — `whoami`, `my_projects`;
+- **сайт** — `site_status`, `env_vars`, `read_site`, `site_screenshot`,
+  `site_issues`, `refactor_site`, `check_copy`, `check_performance`;
+- **деплои** — `list_deploys`, `deploy_logs`, `diagnose_deploy`,
+  `retry_deploy`, `cancel_deploy`, `rollback`, `publish_site`
+  (старое имя `publish_landing` — алиас, deprecated);
+- **домены и аналитика** — `connect_domain`, `check_domain`, `list_domains`,
+  `connect_analytics`, `site_analytics`;
+- **Data API** — `data_api_status`, `data_api_methods`, `data_api_grant`,
+  `data_api_keys`, `data_api_origins`, `data_api_probe`.
+
+Требуют явного согласия человека: `rollback` (меняет то, что видят
+посетители), `data_api_grant` (открывает доступ к данным), `data_api_keys`
+с `issue`/`revoke`, `data_api_origins`. Клиент с формами получит вопрос от
+сервера; без форм — спроси в чате и только потом передай `confirmed`. Не
+подставляй `confirmed` вместо ответа человека.
+
+## `layero.json`
+
+Файл в корне репозитория; задаёт то, что платформа обычно определяет сама,
+и побеждает настройки панели. Правило: **что указано — обязательно
+применяется, чего нет — определяется автоматически**. Каждое записанное
+поле запирается в панели, поэтому не заполняй «на всякий случай».
+
+```json
+{ "framework": "vite", "buildCommand": "npm run build", "outputDirectory": "dist", "nodeVersion": "22" }
+```
+
+Никаких секретов, токенов, доменов и id — файл лежит в git. Поля, порядок
+старшинства и как проверить по логу сборки —
+[references/layero-json.md](../skills/layero/references/layero-json.md).
+
+## Git-провайдеры
+
+GitHub, GitVerse, GitLab, GitFlic, SourceCraft — все подключаются в панели
+через «Импорт из репозитория». Push в ветку — превью-окружение, push в
+`main` — прод. Разница между провайдерами — [references/git-providers.md](../skills/layero/references/git-providers.md).
+
+## Никогда
+
+- `git init` или push в репозиторий ради деплоя — единица деплоя из CLI это папка.
+- `npm install -g layero` — глобальная установка падает в песочницах агентов.
+  Только `npx layero@latest …` или `npm install -D layero`.
+- Открывать панель, чтобы «дозавершить настройку»: CLI делает всё сам,
+  браузерного мастера нет с v0.5.0.
+- `layero login --provider` — флага нет с v0.5.x, провайдер выбирается в браузере.
+- Считать `layero deploy` безопасным превью: для проекта из CLI прямая
+  загрузка авто-промоутится и заменяет то, что видят посетители по `ready.url`.
+  `--prod` имеет смысл только у проектов с подключённым репозиторием.
+- Предлагать `--branch` как изолированную публикацию: для прямых загрузок флаг
+  молча игнорируется, всё ложится в окружение `cli`. Изолированное превью —
+  только push в ветку подключённого репозитория.
+- Собирать адрес сайта из шаблона — только `ready.url`.
+- Деплоить на прод молча и откатывать без вопроса.

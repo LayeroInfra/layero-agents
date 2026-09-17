@@ -1,34 +1,35 @@
 {
-  "name": "layero-claude",
+  "name": "layero",
   "owner": {
     "name": "Layero",
     "url": "https://layero.ru"
   },
   "metadata": {
-    "description": "Официальный маркетплейс Layero для Claude Code. Layero — российская платформа хостинга и деплоя фронтенд-приложений: серверы и CDN внутри России, деплой одной командой.",
-    "version": "1.0.0"
+    "description": "Официальный маркетплейс Layero. Layero — платформа хостинга и деплоя с серверами сборки в России: репозиторий или папка → сайт, домены, превью-ветки, Data API.",
+    "version": "2.0.0"
   },
   "plugins": [
     {
       "name": "layero",
       "source": "./plugins/layero",
-      "description": "Собрать лендинг прямо в чате Claude Code и задеплоить его на Layero — хостинг с серверами и CDN в России.",
-      "version": "1.0.0",
+      "description": "Деплой и эксплуатация сайтов на Layero — хостинге с серверами сборки в России: деплои, домены, переменные окружения, Data API. Навык и MCP-сервер.",
+      "version": "2.0.0",
       "author": {
         "name": "Layero",
         "url": "https://layero.ru"
       },
-      "homepage": "https://docs.layero.ru/plugin/intro",
+      "homepage": "https://docs.layero.ru/agents/",
+      "repository": "https://github.com/LayeroInfra/layero-agents",
       "license": "MIT",
       "keywords": [
         "deploy",
         "deployment",
         "hosting",
-        "cdn",
-        "landing-page",
         "static-site",
+        "ssr",
         "russia",
-        "mcp"
+        "mcp",
+        "data-api"
       ]
     }
   ]

@@ -2,13 +2,13 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "ru.layero/layero",
   "title": "Layero",
-  "description": "Build a landing page from your IDE chat, publish it, then manage domains and analytics.",
-  "websiteUrl": "https://docs.layero.ru/en/plugin/intro/",
+  "description": "Deploy and operate sites on Layero — hosting with build servers in Russia: domains, env, Data API.",
+  "websiteUrl": "https://docs.layero.ru/agents/",
   "repository": {
     "url": "https://github.com/LayeroInfra/layero-agents",
     "source": "github"
   },
-  "version": "1.29.0",
+  "version": "2.0.0",
   "remotes": [
     {
       "type": "streamable-http",
@@ -16,7 +16,7 @@
       "headers": [
         {
           "name": "Authorization",
-          "description": "Layero token, issued at https://app.layero.ru/settings/cli. Optional: building a landing works anonymously; publishing, domains and analytics need it.",
+          "description": "Layero token for CI and headless clients, issued at https://app.layero.ru/settings/cli or with `npx layero@latest token create`. Optional: interactive clients sign in through OAuth.",
           "isRequired": false,
           "isSecret": true,
           "placeholder": "Bearer layero_ci_..."

@@ -1,222 +1,158 @@
-# Layero for Claude Code
+# Layero для агентов
 
 **[English](#english)** · Русский
 
-> **Layero** — российская платформа хостинга и деплоя фронтенд-приложений.
-> Деплой одной командой `npx layero deploy`, серверы и CDN внутри России,
-> поддержка Next.js / Vite / Astro / SvelteKit / Nuxt и деплой прямо из
-> AI-агентов (Cursor, Claude Code).
+> **Layero** — платформа хостинга и деплоя с серверами сборки в России.
+> Репозиторий или папка с кодом → сайт на `<проект>.layero.app`; кастомные
+> домены, превью-ветки, runtime-приложения, базы Postgres с Data API.
 
-🌐 Сайт: <https://layero.ru> · 📚 Документация: <https://docs.layero.ru> · 📦 npm: <https://www.npmjs.com/package/layero>
+🌐 Сайт: <https://layero.ru> · 📚 Документация: <https://docs.layero.ru/agents/> · 📦 npm: <https://www.npmjs.com/package/layero>
 
-Официальный маркетплейс плагина `@layero` для [Claude Code](https://claude.com/claude-code).
+Этот репозиторий — **канон** того, как AI-агенты работают с Layero: один
+навык (`skills/layero`), одно описание подключения MCP (`mcp.json`) и одна
+таблица команд установки (`agents-install.json`). Всё остальное — плагины
+для Claude Code и Cursor, запись в реестре MCP, блок установки ниже —
+генерируется из канона скриптом и сверяется гейтом.
 
 ## Установка
 
-```
-/plugin marketplace add LayeroInfra/layero-agents
-/plugin install layero@layero-claude
-```
+<!-- install:start -->
+MCP: `https://mcp.layero.ru/mcp` (сервер `layero`, транспорт http) · навык: `LayeroInfra/layero-agents`
 
-После установки в чате доступен `@layero`.
+| Клиент | Команда |
+|---|---|
+| **CLI** | `npx layero@latest deploy` |
+| **Agent Skill** | `npx skills add LayeroInfra/layero-agents` |
+| **Любой агент** | `npx -y add-mcp https://mcp.layero.ru/mcp` |
+| **Claude Code** | `claude plugin marketplace add LayeroInfra/layero-agents && claude plugin install layero@layero` |
+| **Cursor** | `npx -y add-mcp https://mcp.layero.ru/mcp` · [одной кнопкой](https://cursor.com/en/install-mcp?name=layero&config=eyJ1cmwiOiJodHRwczovL21jcC5sYXllcm8ucnUvbWNwIn0%3D) |
+| **Codex CLI** | `codex mcp add layero --url https://mcp.layero.ru/mcp` |
 
-### Подключение аккаунта
-
-Собрать лендинг можно сразу — подбор структуры и дизайн-системы работает без
-авторизации. Публикация требует токен: выпустите его на
-[app.layero.ru/settings/cli](https://app.layero.ru/settings/cli) и положите в
-переменную окружения — плагин подставит её в заголовок сам.
+CI и бездисплейные среды — токен в `LAYERO_TOKEN`:
 
 ```bash
-export LAYERO_TOKEN="<ваш токен>"
+LAYERO_TOKEN=… npx layero@latest deploy --project <slug> --json --yes
 ```
+<!-- install:end -->
 
-Переменную удобно держать в профиле оболочки (`~/.zshrc`, `~/.bashrc`), чтобы
-она была и в следующих сессиях. Если её не задать, публикация ответит, что
-токен не принят, и укажет ту же страницу.
+Три канала, выбирайте по клиенту:
 
-## Что делает `@layero`
+1. **Навык** — `npx skills add LayeroInfra/layero-agents` ставит `skills/layero`
+   в любой агент, понимающий стандарт Agent Skills (`.agents/skills`).
+   Навык учит агента трём путям: push в подключённый репозиторий, деплой
+   папки через `npx layero@latest deploy --json`, эксплуатация живого сайта.
+2. **MCP-сервер** — `npx -y add-mcp https://mcp.layero.ru/mcp` подключает
+   удалённый сервер (Streamable HTTP) во все установленные клиенты. Вход —
+   OAuth: клиент сам откроет браузер (появится автоматически). Локально
+   ничего не запускается.
+3. **Плагины** — Claude Code (`claude plugin marketplace add LayeroInfra/layero-agents
+   && claude plugin install layero@layero`) и Cursor (**Customize → Plugins →
+   Add**, репозиторий `LayeroInfra/layero-agents`) ставят навык и MCP одной
+   командой.
 
-Плагин подключает [MCP](https://modelcontextprotocol.io/)-сервер Layero и позволяет
-собрать готовый лендинг прямо в чате IDE — без редактора и терминала:
+### CI и среды без браузера
 
-```
-@layero хочу лендинг для воркшопа по гончарке, тёплый винтажный стиль
-```
+Там, где некому пройти вход в браузере, используется токен `LAYERO_TOKEN`:
+выпустите его на [app.layero.ru/settings/cli](https://app.layero.ru/settings/cli)
+или командой `npx layero@latest token create`. CLI читает переменную сам;
+для MCP плагин Claude Code подставляет её в заголовок
+`Authorization: Bearer ${LAYERO_TOKEN}` (то же делает корневой `.mcp.json`
+при клонировании репозитория). В плагине Cursor заголовка нет: Cursor не
+раскрывает `${VAR}`, и нераскрытая строка ушла бы на сервер как неверный
+токен.
 
-- **5 дизайн-систем** — minimal, editorial, terminal, warm, bold
-- **6 структур** — masterclass, portfolio-dev, portfolio-designer, portfolio-mentor, event, saas
-- **Квизы прямо в IDE** — плагин уточняет мотивацию, стиль и интеграцию через нативные формы
-- **Деплой встроен** — после генерации файлов страница публикуется на Layero
+## Как агент себя ведёт
 
-В отличие от [CLI](https://docs.layero.ru/cli/install), который деплоит **существующий**
-проект, `@layero` создаёт лендинг **с нуля** по короткому брифу.
+Принципы — в [SOUL.md](./SOUL.md): не деплоить на прод молча, показывать
+адрес сайта только из ответа платформы, спрашивать человека перед откатом и
+выдачей доступа к данным, говорить с пользователем на его языке.
 
-Подробнее — [что такое @layero](https://docs.layero.ru/plugin/intro),
-[каталог дизайнов и структур](https://docs.layero.ru/plugin/catalogue),
-[интеграции форм](https://docs.layero.ru/plugin/integrations).
-
-## Другие IDE
-
-| IDE | Установка |
-|---|---|
-| **Cursor** | Плагин: **Customize → Plugins → Add** и репозиторий `LayeroInfra/layero-agents` |
-| **Claude Code** | Две команды выше |
-| **Codex** | `codex mcp add layero --url https://mcp.layero.ru/mcp --bearer-token-env-var LAYERO_TOKEN` |
-
-⚠️ **Кнопка «Add to Cursor» (диплинк `cursor://…/mcp/install`) на новых сборках
-Cursor не работает** — и не по нашей вине. Диплинк ничего не ставит сам: он
-кладёт «предложение» в память и открывает старую панель настроек, где есть
-кнопка Install. После миграции Cursor на редактор Customize эта панель больше
-не открывается, предложение показать некому. Рабочий путь — плагин.
-
-Полная инструкция — [docs.layero.ru/plugin/install](https://docs.layero.ru/plugin/install).
-
-## Как плагин себя ведёт
-
-Правила поведения `@layero` — тон, что он решает сам, чего не делает никогда —
-зафиксированы в [SOUL.md](./SOUL.md). Этот файл загружается в каждый диалог
-как контекст высшего приоритета, так что он же и есть описание того, чего
-ждать от плагина.
-
-## Что внутри репозитория
+## Структура репозитория
 
 ```
-.claude-plugin/marketplace.json   — описание маркетплейса Claude Code
-.cursor-plugin/marketplace.json   — описание маркетплейса Cursor
-server.json                       — запись в официальном MCP-реестре
-SOUL.md                           — правила поведения плагина
-.mcp.json                         — подключение MCP-сервера из корня
-rules/layero-deployment.mdc       — правило для Cursor: деплой через CLI
-skills/deploy-to-layero/SKILL.md  — Agent Skill с тем же сценарием
-check-cursor-plugin.py            — сверка плагина Cursor с оригиналами и сервером
-plugins/layero/                   — плагин для Claude Code
-  ├── .claude-plugin/plugin.json  — манифест плагина
-  └── .mcp.json                   — MCP-сервер с токеном из ${LAYERO_TOKEN}
-plugins/layero-cursor/            — плагин для Cursor
-  ├── .cursor-plugin/plugin.json  — манифест плагина
-  ├── mcp.json                    — MCP-сервер без заголовка авторизации
-  ├── rules/, skills/             — копии корневых правила и навыка
-  └── assets/logo.svg             — логотип для карточки в маркетплейсе
+skills/layero/SKILL.md            — КАНОН: единый навык
+skills/layero/references/         — справочники: JSON-события CLI, layero.json, git-провайдеры
+mcp.json                          — КАНОН: как подключить MCP-сервер
+agents-install.json               — КАНОН: команды установки по клиентам
+SOUL.md                           — принципы поведения агента (layero://soul)
+assets/logo.svg                   — логотип для карточки плагина
+build-adapters.py                 — генерирует всё ниже
+check-surfaces.py                 — гейт: сгенерированное == закоммиченное
+.claude-plugin/marketplace.json   — маркетплейс Claude Code          (генерируется)
+plugins/layero/                   — плагин Claude Code: .mcp.json + навык (генерируется)
+.cursor-plugin/marketplace.json   — маркетплейс Cursor                (генерируется)
+plugins/layero-cursor/            — плагин Cursor: mcp.json, правило, навык, логотип (генерируется)
+server.json                       — запись в реестре MCP как ru.layero/layero (генерируется)
+.mcp.json                         — подключение из корня для Claude Code (генерируется)
 ```
 
-Корневые `.mcp.json`, `rules/` и `skills/` лежат по стандарту
-[Open Plugins](https://open-plugins.com) — по ним репозиторий находят сканеры
-каталогов. Для самого плагина Claude Code источник правды — `plugins/layero/`.
+## Как менять
 
-**Почему у Cursor отдельная папка.** Cursor и Claude Code читают из папки
-плагина один и тот же файл (`.mcp.json`, затем `mcp.json`), а подстановки в нём
-понимают по-разному: Claude Code раскроет `${LAYERO_TOKEN}`, Cursor — только
-`${env:LAYERO_TOKEN}`. Нераскрытая строка уходит на сервер как есть, и человек
-получает «Токен не принят: Invalid token» вместо честного «токена нет».
-Поэтому у Cursor конфиг без заголовка `Authorization`: без токена работает
-сборка лендинга, а для публикации сервер сам подскажет выпустить токен на
-[app.layero.ru/settings/cli](https://app.layero.ru/settings/cli).
+Правится только канон: `skills/layero/`, `mcp.json`, `agents-install.json`,
+`SOUL.md`, этот README вне блока установки. Затем:
 
-Копии правила и навыка внутри `plugins/layero-cursor/` разъезжаются молча —
-за этим следит `python3 check-cursor-plugin.py` (заодно сверяет адрес сервера,
-запрещает подстановки не в форме `${env:…}` и сличает подписи инструментов с
-живым `tools/list`).
+```bash
+make build   # перегенерировать адаптеры
+make check   # убедиться, что всё совпадает
+```
 
-Плагин не содержит кода: вся логика живёт в remote MCP-сервере
-`https://mcp.layero.ru/mcp` (Streamable HTTP).
+Адаптеры руками не правятся — правка проживёт до следующего `make build`
+и уронит `make check`. Гейт заодно сверяет копии `agents-install.json` в
+соседних чекаутах лендинга и документации, если они есть рядом.
+
+Сервер также числится в [официальном реестре MCP](https://registry.modelcontextprotocol.io)
+как `ru.layero/layero`.
 
 ---
 
 ## English
 
-**Layero** is a frontend hosting and deployment platform whose build servers
-and CDN sit inside Russia — which is the point: sites load fast for Russian
-visitors without a VPN, and deploys do not cross the border. It ships a local
-directory in one command (`npx layero deploy`), with framework detection for
-Next.js, Vite, Astro, SvelteKit and Nuxt.
+**Layero** is a hosting and deployment platform whose build servers sit
+inside Russia: connect a repository or ship a directory, get a site at
+`<project>.layero.app`, plus custom domains, branch previews, runtime apps
+and Postgres databases with a Data API.
 
-This repository is the official Claude Code marketplace for the `@layero`
-plugin, and the source of record for Layero's remote MCP server.
+This repository is the **canonical source** for how AI agents work with
+Layero: one skill (`skills/layero`), one MCP connection spec (`mcp.json`) and
+one table of install commands (`agents-install.json`). Everything else — the
+Claude Code and Cursor plugins, the MCP registry record, the install block
+above — is generated from the canon and checked by a gate.
 
 ### Install
 
-```
-/plugin marketplace add LayeroInfra/layero-agents
-/plugin install layero@layero-claude
-```
+Commands per client are in the table above (`agents-install.json`). Three
+channels:
 
-| IDE | How |
-|---|---|
-| **Claude Code** | the two commands above |
-| **Cursor** | as a plugin: **Customize → Plugins → Add**, repository `LayeroInfra/layero-agents` |
-| **Codex** | `codex mcp add layero --url https://mcp.layero.ru/mcp --bearer-token-env-var LAYERO_TOKEN` |
+1. **Skill** — `npx skills add LayeroInfra/layero-agents` installs
+   `skills/layero` into any agent that reads the Agent Skills standard.
+2. **MCP server** — `npx -y add-mcp https://mcp.layero.ru/mcp` adds the remote
+   server (Streamable HTTP) to every installed client. Sign-in is OAuth; the
+   client opens the browser itself. Nothing runs locally.
+3. **Plugins** — Claude Code (`claude plugin marketplace add LayeroInfra/layero-agents
+   && claude plugin install layero@layero`) and Cursor (**Customize → Plugins →
+   Add**, repository `LayeroInfra/layero-agents`).
 
-⚠️ The **Add to Cursor** one-click link (`cursor://…/mcp/install`) installs
-nothing on recent Cursor builds. The deeplink only stages a *proposed* server
-in memory; the confirm button lives on the legacy settings pane, which no
-longer opens once Cursor has migrated to the Customize editor. Use the plugin.
+### CI
 
-The server is remote (Streamable HTTP at `https://mcp.layero.ru/mcp`), so
-there is nothing to install locally and no Node process on your side.
-
-It is also listed in the [official MCP registry](https://registry.modelcontextprotocol.io)
-as `ru.layero/layero` and on [Smithery](https://smithery.ai/servers/borisowvalia/layero),
-if your client installs servers from a catalogue.
-
-### Connecting your account
-
-Building a landing page works right away — picking a structure and a design
-system needs no authentication. Publishing needs a token: issue one at
-[app.layero.ru/settings/cli](https://app.layero.ru/settings/cli) and put it in
-an environment variable; the plugin substitutes it into the header itself.
+Where nobody can sign in through a browser, use `LAYERO_TOKEN`: issue it at
+[app.layero.ru/settings/cli](https://app.layero.ru/settings/cli) or with
+`npx layero@latest token create`.
 
 ```bash
-export LAYERO_TOKEN="<your token>"
+LAYERO_TOKEN=… npx layero@latest deploy --project <slug> --json --yes
 ```
 
-Keep it in your shell profile (`~/.zshrc`, `~/.bashrc`) so later sessions pick
-it up. Without it, publishing replies that the token was not accepted and
-points at the same page.
+The CLI reads the variable itself; the Claude Code plugin (and the root
+`.mcp.json`) forward it as `Authorization: Bearer ${LAYERO_TOKEN}`. The Cursor
+plugin ships no header because Cursor does not expand `${VAR}`.
 
-### What it does
+### Changing things
 
-It is not only a page generator. The endpoint currently exposes **27 tools**
-covering the whole life of a site:
+Edit only the canon (`skills/layero/`, `mcp.json`, `agents-install.json`,
+`SOUL.md`, this README outside the install block), then `make build` and
+`make check`. Generated adapters are never edited by hand.
 
-- **build** — `list_design_systems`, `list_structures`, `compose_landing`,
-  `compose_landing_submit`
-- **ship** — `publish_landing`, `add_integration`
-- **operate** — `site_status`, `list_deploys`, `deploy_logs`, `diagnose_deploy`,
-  `retry_deploy`, `cancel_deploy`, `rollback`, `check_performance`
-- **inspect and edit** — `read_site`, `site_screenshot`, `site_issues`,
-  `refactor_site`, `check_copy`
-- **setup** — `env_vars`, `connect_domain`, `check_domain`, `list_domains`
-- **analytics** — `connect_analytics`, `site_analytics`
-- **account** — `whoami`, `my_projects`
-
-Ask it for a landing page and it runs two or three short quizzes as native
-IDE forms (through MCP elicitation), writes the files, and publishes them.
-Later you can ask why a build failed, attach a custom domain, or compare page
-speed against the previous deploy — in the same conversation.
-
-The plugin ships no code of its own: all logic lives in the remote server.
-How it behaves — what it decides on its own, what it never does — is written
-down in [SOUL.md](./SOUL.md), which is loaded into every conversation as
-top-priority context.
-
-### Also in this repository
-
-- [`rules/layero-deployment.mdc`](./rules/layero-deployment.mdc) — a Cursor
-  rule for deploying an **existing** project through the CLI
-- [`skills/deploy-to-layero/SKILL.md`](./skills/deploy-to-layero/SKILL.md) —
-  the same procedure as a standalone Agent Skill
-- [`plugins/layero-cursor/`](./plugins/layero-cursor) — the same plugin packaged
-  for Cursor (`.cursor-plugin/plugin.json`, `mcp.json`, a copy of the rule and
-  the skill, a logo); listed in [`.cursor-plugin/marketplace.json`](./.cursor-plugin/marketplace.json)
-- [`check-cursor-plugin.py`](./check-cursor-plugin.py) — validates that plugin:
-  manifests, logo, copies matching the originals byte for byte, the canonical
-  server URL, no `${VAR}` outside Cursor's `${env:VAR}` form, and tool titles
-  checked against the live `tools/list`
-- [`server.json`](./server.json) — the record published to the official
-  [MCP registry](https://registry.modelcontextprotocol.io) as `ru.layero/layero`
-
-Docs: <https://docs.layero.ru/en/plugin/intro/> · Website: <https://layero.ru> ·
+Docs: <https://docs.layero.ru/en/agents/> · Website: <https://layero.ru> ·
 npm: <https://www.npmjs.com/package/layero>
 
 > Not to be confused with Layer0 / Edgio, or with layero.com — unrelated products.
