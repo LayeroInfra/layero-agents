@@ -100,8 +100,56 @@ make check   # убедиться, что всё совпадает
 и уронит `make check`. Гейт заодно сверяет копии `agents-install.json` в
 соседних чекаутах лендинга и документации, если они есть рядом.
 
-Сервер также числится в [официальном реестре MCP](https://registry.modelcontextprotocol.io)
-как `ru.layero/layero`.
+## Где Layero представлен
+
+Единый список внешних адресов. Меняется здесь; каталоги, которые не
+обновляются из репозитория сами, помечены — их правят руками после
+каждого релиза (гейт `frontend/landing/check-published-claims.py` в `core`
+ловит устаревшие обещания).
+
+### Продукт
+
+| Что | Адрес |
+|---|---|
+| Сайт | https://layero.ru · `llms.txt`: https://layero.ru/llms.txt |
+| Панель | https://app.layero.ru |
+| Документация | https://docs.layero.ru · для агентов: https://docs.layero.ru/agents/ |
+| Статус платформы | https://status.layero.app |
+| MCP-сервер | https://mcp.layero.ru/mcp |
+| Чат в Telegram | https://t.me/layero_ru |
+| Product Radar | https://productradar.ru/product/layero/ |
+
+### Код
+
+| Репозиторий | GitHub | Зеркало GitVerse |
+|---|---|---|
+| Канон для агентов (этот) | https://github.com/LayeroInfra/layero-agents | https://gitverse.ru/layero/layero-agents |
+| CLI (`npm i layero`) | https://github.com/LayeroInfra/cli | https://gitverse.ru/layero/cli |
+| Документация | https://github.com/LayeroInfra/layero-docs | https://gitverse.ru/layero/layero-docs |
+| Примеры | https://github.com/LayeroInfra/examples | https://gitverse.ru/layero/examples |
+| GitHub Action | https://github.com/LayeroInfra/deploy-action | https://gitverse.ru/layero/deploy-action |
+| Дизайн-система | https://github.com/LayeroInfra/design-system | https://gitverse.ru/layero/design-system |
+
+Организация на GitVerse — https://gitverse.ru/layero. Зеркала обновляются
+workflow `mirror-gitverse.yml` в каждом репозитории при push в `main`
+(CLI — из `publish-cli.yml` в `core`); нужны секреты `GITVERSE_LOGIN` и
+`GITVERSE_TOKEN` на уровне организации GitHub.
+
+### Пакеты и маркетплейсы
+
+| Площадка | Запись | Обновляется |
+|---|---|---|
+| npm | https://www.npmjs.com/package/layero | публикацией тега `cli-v*` |
+| GitHub Marketplace | https://github.com/marketplace/actions/deploy-to-layero | релизом `deploy-action` |
+| Официальный реестр MCP | `ru.layero/layero` — https://registry.modelcontextprotocol.io/v0.1/servers?search=ru.layero | `mcp-publisher publish` из `mcp/` (бамп версии обязателен) |
+| Claude Code marketplace | `claude plugin marketplace add LayeroInfra/layero-agents` → `layero@layero` | из этого репозитория |
+| Cursor marketplace | `.cursor-plugin/marketplace.json` этого репозитория | из этого репозитория |
+| skills.sh | https://skills.sh/LayeroInfra/layero-agents | из этого репозитория |
+| Smithery | https://smithery.ai/servers/borisowvalia/layero | **руками**: `npx @smithery/cli mcp publish https://mcp.layero.ru/mcp -n borisowvalia/layero`, описание в Settings |
+| Glama | https://glama.ai/mcp/connectors/ru.layero/layero | из реестра MCP; владение подтверждено файлом https://mcp.layero.ru/.well-known/glama.json |
+| cursor.directory | https://cursor.directory/plugins/layero | **руками** на `/plugins/layero/edit` |
+| mcp.so | заявка https://github.com/chatmcp/mcpso/issues/4219 | по заявке |
+| PulseMCP | берёт из реестра MCP | автоматически |
 
 ---
 
