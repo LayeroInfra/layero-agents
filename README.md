@@ -23,7 +23,7 @@ MCP: `https://mcp.layero.ru/mcp` (сервер `layero`, транспорт http
 |---|---|
 | **CLI** | `npx layero@latest deploy` |
 | **Agent Skill** | `npx skills add LayeroInfra/layero-agents` |
-| **Любой агент** | `npx -y add-mcp https://mcp.layero.ru/mcp` |
+| **Agents** | `npx -y add-mcp https://mcp.layero.ru/mcp` |
 | **Claude Code** | `claude plugin marketplace add LayeroInfra/layero-agents && claude plugin install layero@layero` |
 | **Cursor** | `npx -y add-mcp https://mcp.layero.ru/mcp` · [одной кнопкой](https://cursor.com/en/install-mcp?name=layero&config=eyJ1cmwiOiJodHRwczovL21jcC5sYXllcm8ucnUvbWNwIn0%3D) |
 | **Codex CLI** | `codex mcp add layero --url https://mcp.layero.ru/mcp` |
