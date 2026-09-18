@@ -58,6 +58,7 @@ build log.
 | Symptom | Fix |
 |---|---|
 | `собранный сайт не содержит index.html в '.'` · `похоже, раздаётся исходный код репозитория, а не собранный сайт` · `сборка отработала, но папки 'dist' нет. После сборки в каталоге есть: …` · `[output] в 'dist' нет index.html` | `outputDirectory`: the folder that contains `index.html` **after** the build (`dist`, `dist/client`, `dist/<app>/browser`, `.output/public`, `build/client`). The error lists what is on disk — take the path from there. If the project was detected as "Static (no build)" but needs a build, also set `framework` and `buildCommand`. |
+| The log says `static framework: skipping install/build`, and the card says `сборка отработала, но папки '…' нет. После сборки в каталоге есть: src` although your `buildCommand` and `outputDirectory` are correct | **The build never ran.** `framework: "static"` (written by you, or guessed by `init` and shown as `(from hint)`) means *no install and no build*; `buildCommand` is ignored with it. For a project with its own build script and no known framework use `"framework": "generic"` together with `buildCommand` and `outputDirectory`. Do not start changing the output path — the path was never the problem. |
 | `npm error Missing script: "build"` · `в package.json нет скрипта «build», а сборка настроена как …. Доступные скрипты: dev, test` · `не знаем, чем собирать этот проект: команда сборки не задана` | `buildCommand` with a script that exists. If the site needs no build at all: `"framework": "static"`. If it is a server or a bot, it is not a static site — see the next row. |
 | A Node or Python server is published as a static site (files are served, nothing runs), or the log says `в приложении больше нет серверной части — дальше оно раздаётся файлами, а не работает в контейнере` about a repo that **is** a server | The platform switches between static and container by itself when it recognises the server (Next without `output: 'export'`, Express, Fastify, FastAPI, Flask, Django…). When it does not, declare it: `"runtime": "node_web"` (or `"python_web"`, `"ssr_next"`), `"startCommand": "node dist/server.js"`, and `"port"` if it is not the default. A top-level `runtime` wins over the project type; the log says `the file wins`. One-off alternative without a file: `npx layero@latest deploy -t node_web`. If the app is in fact static, the type is wrong: redeploy with `-t vite` / `-t static`. |
 | `launch/boot: container failed to start in time` with `ERR_MODULE_NOT_FOUND /app/…`, a missing entry file, or the app listening on `127.0.0.1` | `startCommand`: path relative to `/app`, a file that exists **after** the build, listening on `0.0.0.0` and `$PORT` — e.g. `uvicorn main:app --host 0.0.0.0 --port $PORT`. Set `port` if the app listens elsewhere (defaults: Node 3000, Next 8080, Python 8000, Streamlit 8501, Gradio 7860). An ASGI app needs `uvicorn`, not `gunicorn app:app`. |
@@ -80,6 +81,33 @@ build log.
 | `builder did not pick up the job after N retries` · `deb.debian.org` · `auth.docker.io … TLS handshake` · `container has no IP in apps network` | Platform. Retry **once** (`retry_deploy`). If it repeats, tell the person to contact support — do not touch the code or the file. |
 | `docker-build: timeout after …s` · `Reached heap limit` · `ENOSPC` | Build limits of the plan. `memory_mb` in the file is the memory of the *running container*, not of the build. |
 | `хост '…' не в списке разрешённых источников` · `git-fetch: timeout after …s` | Source connection in the dashboard. |
+
+## When the CLI's own detection is wrong
+
+`npx layero@latest init` and the `detected` event of `deploy` come from a quick
+local check. They do **not** read `layero.json`, and they can be confidently
+wrong. The authoritative answer is the `[config] …` lines of the build log.
+
+`{"framework":"static","build_cmd":"true","output_dir":".","confident":true}`
+for a folder that has **no `index.html` at its root** means "nothing was
+recognised here", not "this is a static site". Look at the folder yourself:
+
+| What you see in the folder | What to do |
+|---|---|
+| The app is in a subfolder (`apps/web`, `frontend/`, `packages/site`) and the root has no manifest | `npx layero@latest deploy --root apps/web` — not a file key, see below |
+| `package.json` with a `build` script but no known framework | `layero.json`: `"framework": "generic"`, `buildCommand`, `outputDirectory` |
+| A server (`express`, `fastify`, `http.createServer`, FastAPI…) | `layero.json`: `runtime` + `startCommand`, or `deploy -t node_web` / `-t python_web` |
+| `frontend/` and `backend/` side by side | `layero.json` with both blocks — "Full-stack layout" |
+
+`init` stores its guess in `.layero/project.json` as `framework_hint` and
+writes it into `AGENTS.md`. A wrong hint is then applied to every build as
+`(from hint)`. When the guess is wrong, fix or delete `.layero/project.json`
+(the project link is restored by `--project <slug>` or `link`) and correct the
+line in `AGENTS.md`; `layero.json` always wins over the hint.
+
+There is no dry run: the only proof that the platform understood the project
+is the log of a real build. Get the shape right before the first deploy
+instead of probing with repeated deploys.
 
 ## What detection already does — leave it alone
 
@@ -179,6 +207,13 @@ Frontend and backend in one repository, API under `/api`:
 }
 ```
 
+- **Inside the halves use the short key names** (`root`, `framework`,
+  `install`, `build`, `output`, `node`, `start`, `port`). The long names from
+  the top level (`buildCommand`, `outputDirectory`, `startCommand`) are not the
+  contract there.
+- The backend usually needs only `root` and `framework`: for FastAPI, Flask,
+  Django, Express the start command and port are derived. Add `start` / `port`
+  only when the launch fails.
 - Both blocks are required: one block alone does not switch the layout on,
   with or without `"layout": "fullstack"`.
 - `root` must be a folder that exists. A half that lives at the repository
@@ -225,7 +260,7 @@ Frontend and backend in one repository, API under `/api`:
 - Use **project settings** (`--type`, `--root`, dashboard) for a one-off fix,
   for anything the file has no key for, and when you are not the owner of the
   repository conventions.
-- Order of precedence, highest first: `layero.json` → project settings →
+- Order of precedence, highest first: `layero.json` → project settings → CLI hint (`--type`, `framework_hint` in `.layero/project.json`) →
   repository (`.nvmrc`, `engines`, `packageManager`, config files) → framework
   default.
 
@@ -262,6 +297,13 @@ After every change, find both of these in the build log
    - ``[config] предупреждение: `…` слушает только localhost — контейнер будет недоступен``
    - `[config] node: layero.json перекрыл .nvmrc=…` (informational: you now have two sources)
    - `Фронтенд указан в каталоге …, но такого каталога в репозитории нет` (or `Бэкенд …`; this one fails the build)
+
+**Container apps: `ready` can arrive before the address answers.** For a
+runtime or full-stack project the first request may get the platform's 404
+placeholder for up to a minute while the container starts (`edge_ready: false`
+in the `ready` event). Poll the URL for up to 60 seconds before you hand it to
+the person; a 404 that survives a minute is a real failure — read
+`logs --runtime`.
 
 Then confirm the result, not the build: `site_status` or `GET` on the address
 from the `ready` event. A green build with a red launch is still a failure.

@@ -29,7 +29,7 @@ stable `code` and `next_action`.
 | `deploy_started` | `deploy_id` | The backend accepted the job. |
 | `stage` | `name`: `clone`/`install`/`build`/`upload`/`activate` | Build stage. |
 | `build_log` | `line`, `stream` | Raw log. Forward only the lines with errors. |
-| `ready` | `url`, `dashboard_url`, `deploy_id` | **Final.** `url` is the live public address: show it as is and stop. `dashboard_url` is the dashboard, not the site. `preview_url`, `edge_ready`, `edge_eta_seconds` are legacy — do not wait for them. |
+| `ready` | `url`, `dashboard_url`, `deploy_id` | **Final.** `url` is the live public address: show it as is and stop. `dashboard_url` is the dashboard, not the site. `preview_url` and `edge_eta_seconds` are legacy. `edge_ready: false` on a container app (runtime, full-stack) means the container is still starting: the URL can answer the platform's 404 placeholder for up to a minute — poll it before handing it over. For a static site the URL is live at once. |
 | `claimable` | `project_id`, `slug`, `url`, `claim_url`, `expires_at` | Deploy without an account (`--claim`): a temporary project for 72 hours. Arrives **before** `ready`. Hand the person `claim_url` — only they can take the site over, in the dashboard. |
 | `promoted` | `url`, `deploy_id` | The apex was switched to the deploy (`layero promote`, `deploy --promote`). |
 | `error` | `code`, `next_action`, `message` | Follow `next_action`. |
@@ -120,7 +120,8 @@ If user asks to deploy via Layero:
   2. Parse each stdout line as JSON, route on .event:
      - "auth_required" → render .url as clickable link, keep waiting
      - "ready" → show .url (the live site) to user; it is reachable
-                 right away — do NOT gate on .edge_ready. Then stop.
+                 right away for a static site; for a container app poll the URL
+                 up to 60 s while .edge_ready is false. Then stop.
      - "error" → follow .next_action verbatim
   3. Never run `git init`. Never run `npm install -g layero`.
 ```

@@ -49,7 +49,9 @@ Main events:
 - `build_log` — raw log; forward only the lines with errors.
 - `ready` — `url` = the live address of the site. Show it **as is**, never
   assemble the host from a template. `dashboard_url` is the dashboard, not the
-  site. `preview_url` and `edge_ready` are legacy — do not wait for them.
+  site. `preview_url` is legacy. For a static site the address is live at once;
+  for a container app (runtime, full-stack) `edge_ready: false` means the
+  container is still starting — poll the URL for up to 60 s before handing it over.
 - `error` — a stable `code` and `next_action`. Follow `next_action`.
 
 A repeat deploy is the same command: the first run creates the project, the
@@ -143,6 +145,16 @@ When a build or launch fails:
 4. Verify in the build log that the value was applied (`(from layero.json)`)
    and that the file produced no warnings.
 5. The same failure twice in a row — stop and tell the person; no third deploy.
+
+Before the first deploy, look at the folder yourself — `init` and the
+`detected` event can be confidently wrong (`static`, `output_dir: "."` with no
+`index.html` at the root means "nothing recognised"): an app in a subfolder →
+`deploy --root <dir>`; a custom build script with no framework →
+`"framework": "generic"` + `buildCommand` + `outputDirectory` (`static` never
+runs a build); a server → `runtime` + `startCommand` or `deploy -t node_web` /
+`-t python_web`; `frontend/` + `backend/` → the full-stack blocks from the
+reference. After `ready` of a container app, poll the URL for up to 60 s before
+handing it over.
 
 Not fixed by the file: monorepo root → `--root`; deploy from the wrong folder → `cd` or `--root`; Next.js server/export mode → `next.config`; code errors → the code; secrets and env → project variables (`env set`); platform failures → retry once.
 
