@@ -1,53 +1,53 @@
-# JSON-события Layero CLI
+# Layero CLI JSON events
 
-Полный справочник: <https://docs.layero.ru/cli/json-events> (en:
-<https://docs.layero.ru/en/cli/json-events>). Здесь — то, что нужно агенту
-при деплое.
+Full reference: <https://docs.layero.ru/en/cli/json-events> (ru:
+<https://docs.layero.ru/cli/json-events>). Here is what an agent needs during
+a deploy.
 
-Режим включается флагом `--json`, переменной `LAYERO_JSON=1`, а также сам —
-внутри агента или при не-TTY stdout. В этом режиме CLI не задаёт вопросов
-(для `--prod` всё равно нужен `--yes`), печатает по одной строке
-`{"event": "...", "ts": "<ISO-8601>", ...}` на действие, ошибки приходят со
-стабильным `code` и `next_action`.
+The mode is switched on by the `--json` flag, by the `LAYERO_JSON=1` variable,
+and by itself — inside an agent or with a non-TTY stdout. In this mode the CLI
+asks no questions (`--prod` still needs `--yes`), prints one line
+`{"event": "...", "ts": "<ISO-8601>", ...}` per action, and errors come with a
+stable `code` and `next_action`.
 
-## События деплоя
+## Deploy events
 
-| событие | поля | что делать |
+| event | fields | what to do |
 |---|---|---|
-| `auth_required` | `url`, `user_code` | Показать `url` кликабельной ссылкой. CLI поллит каждые 2 с, токен кэшируется в `~/.layero/config.json`. Callback на localhost нет — браузер может быть на другой машине. Истечение — `error{auth_expired \| auth_timeout}`. |
-| `authorized` | `user` | Вход успешен. |
-| `project_created` | `project_id`, `slug`, `organization` | Первый деплой в папке — создан проект. |
-| `project_linked` | `project_id`, `slug` | Деплой в проект из `.layero/project.json`. |
-| `detected` | `framework`, `build_cmd`, `output_dir`, `confident` | Информационно. Не переопределять, если детект не ошибся явно. `confident: false` — static-fallback. |
-| `packing` | `files`, `bytes`, `sha256` | Папка упакована в tar.gz. |
-| `uploading` / `uploaded` | `archive_key` | Заливка архива. |
-| `prebuilt` | `dir` | Деплой готовой сборки (`--prebuilt <dir>`), сборка на платформе пропускается. |
-| `runtime_type_applied` | `project_type` | Проект определён как runtime-приложение (`ssr_next`, `node_web`, `python_web`, `streamlit`, `gradio`, `flask`). |
-| `runtime_type_apply_failed` | `error` | Тип не проставился, деплой идёт с прежним. |
-| `setup_applied` | — | Настройки проекта применены на первом деплое. |
-| `repeated_failure_guard` | `streak`, `threshold`, `scope`, `failure_stage`, `error` | Подряд идущие сборки падают с одной ошибкой — платформа остановилась. Прочитать `error`, устранить причину. Автоматически продолжить нельзя. |
-| `deploy_started` | `deploy_id` | Бэкенд принял задачу. |
-| `stage` | `name`: `clone`/`install`/`build`/`upload`/`activate` | Стадия сборки. |
-| `build_log` | `line`, `stream` | Сырой лог. Пересылать только строки с ошибками. |
-| `ready` | `url`, `dashboard_url`, `deploy_id` | **Финал.** `url` — живой публичный адрес, показать как есть и остановиться. `dashboard_url` — панель, не сайт. `preview_url`, `edge_ready`, `edge_eta_seconds` — legacy, не ждать. |
-| `claimable` | `project_id`, `slug`, `url`, `claim_url`, `expires_at` | Деплой без аккаунта (`--claim`): временный проект на 72 часа. Приходит **до** `ready`. Передать человеку `claim_url` — забрать сайт может только он, в панели. |
-| `promoted` | `url`, `deploy_id` | Апекс переведён на деплой (`layero promote`, `deploy --promote`). |
-| `error` | `code`, `next_action`, `message` | Следовать `next_action`. |
+| `auth_required` | `url`, `user_code` | Show `url` as a clickable link. The CLI polls every 2 s, the token is cached in `~/.layero/config.json`. There is no localhost callback — the browser may be on another machine. Expiry — `error{auth_expired \| auth_timeout}`. |
+| `authorized` | `user` | Login succeeded. |
+| `project_created` | `project_id`, `slug`, `organization` | First deploy in the folder — a project was created. |
+| `project_linked` | `project_id`, `slug` | Deploy into the project from `.layero/project.json`. |
+| `detected` | `framework`, `build_cmd`, `output_dir`, `confident` | Informational. Do not override unless detection is clearly wrong. `confident: false` — static fallback. |
+| `packing` | `files`, `bytes`, `sha256` | The folder was packed into a tar.gz. |
+| `uploading` / `uploaded` | `archive_key` | Archive upload. |
+| `prebuilt` | `dir` | Deploy of a ready build (`--prebuilt <dir>`); the build on the platform is skipped. |
+| `runtime_type_applied` | `project_type` | The project was identified as a runtime app (`ssr_next`, `node_web`, `python_web`, `streamlit`, `gradio`, `flask`). |
+| `runtime_type_apply_failed` | `error` | The type was not set; the deploy goes on with the previous one. |
+| `setup_applied` | — | Project settings were applied on the first deploy. |
+| `repeated_failure_guard` | `streak`, `threshold`, `scope`, `failure_stage`, `error` | Consecutive builds fail with the same error — the platform stopped. Read `error`, remove the cause. It cannot be continued automatically. |
+| `deploy_started` | `deploy_id` | The backend accepted the job. |
+| `stage` | `name`: `clone`/`install`/`build`/`upload`/`activate` | Build stage. |
+| `build_log` | `line`, `stream` | Raw log. Forward only the lines with errors. |
+| `ready` | `url`, `dashboard_url`, `deploy_id` | **Final.** `url` is the live public address: show it as is and stop. `dashboard_url` is the dashboard, not the site. `preview_url`, `edge_ready`, `edge_eta_seconds` are legacy — do not wait for them. |
+| `claimable` | `project_id`, `slug`, `url`, `claim_url`, `expires_at` | Deploy without an account (`--claim`): a temporary project for 72 hours. Arrives **before** `ready`. Hand the person `claim_url` — only they can take the site over, in the dashboard. |
+| `promoted` | `url`, `deploy_id` | The apex was switched to the deploy (`layero promote`, `deploy --promote`). |
+| `error` | `code`, `next_action`, `message` | Follow `next_action`. |
 
-## События остальных команд
+## Events of the other commands
 
-| событие | команда | поля |
+| event | command | fields |
 |---|---|---|
 | `me` | `whoami` | `id`, `username`, `email`, `github_login` |
 | `projects` | `projects list` | `projects[]`: `id`, `slug`, `name`, `organization`, `url`, `source_type`, `repo`, `status` |
 | `organizations` | `orgs list` | `organizations[]`: `id`, `slug`, `kind`, `role` |
-| `project_created` | `projects create --repo` | как у деплоя, плюс `url`, `repo`, `branch` |
+| `project_created` | `projects create --repo` | same as for a deploy, plus `url`, `repo`, `branch` |
 | `source_connected` | `sources connect`, `projects create` | `org`, `connection_id`, `provider`, `account` |
-| `webhook_installed` / `webhook_unavailable` | `projects create` | `project`, `url` (у GitHub App поля `url` нет: вебхук — часть установки); у `webhook_unavailable` — `hint`. Без вебхука push не собирается — сказать человеку, дать `url` для ручной настройки. |
-| `setup_applied` | `projects create` | `project`, `framework`, `build_cmd`, `output_dir`, `layero_found`. Команда сама применила настройки из детекта — как кнопка «Начать деплой» в панели; за ним идёт `deploy_started` |
-| `deploy_started` | `projects create`, `deploy` | `deploy_id`; у `projects create` ещё `project`, `url`. Первая сборка запущена — дальше `deploys list --project <slug>` или MCP `site_status` |
-| `setup_pending` | `projects create --no-deploy` | `project`, `url`, `hint`. Проект оставлен в мастере: сборок не будет, пока человек не завершит настройку по `url` |
-| `setup_failed` | `projects create` | `project`, `reason`, `url`, `hint`. Проект **создан** (выход 0), но детект, настройка или запуск сборки не удались — сказать человеку завершить в панели по `url` |
+| `webhook_installed` / `webhook_unavailable` | `projects create` | `project`, `url` (a GitHub App has no `url` field: the webhook is part of the installation); `webhook_unavailable` also has `hint`. Without a webhook a push does not build — tell the person and give them `url` for manual setup. |
+| `setup_applied` | `projects create` | `project`, `framework`, `build_cmd`, `output_dir`, `layero_found`. The command applied the detected settings by itself — like the «Начать деплой» button in the dashboard; `deploy_started` follows |
+| `deploy_started` | `projects create`, `deploy` | `deploy_id`; for `projects create` also `project`, `url`. The first build is running — continue with `deploys list --project <slug>` or MCP `site_status` |
+| `setup_pending` | `projects create --no-deploy` | `project`, `url`, `hint`. The project is left in the setup wizard: there will be no builds until the person finishes the setup at `url` |
+| `setup_failed` | `projects create` | `project`, `reason`, `url`, `hint`. The project **is created** (exit 0), but detection, setup or the build start failed — tell the person to finish in the dashboard at `url` |
 | `sources` | `sources list` | `org`, `providers[]` (`id`, `title`, `self_hosted`, `webhook_supported`, `token_hint`), `connections[]` (`id`, `provider`, `account`, `status`, `projects_count`, `token_expiry_state`, `last_error`) |
 | `source_repos` | `sources repos` | `org`, `connection_id`, `repos[]` (`path`, `name`, `default_branch`, `private`, `can_admin`) |
 | `environments` | `envs list` | `project`, `environments[]` (`id`, `branch`, `url`, `hostname`, `active_deploy_id`, `active_deploy_at`, `production`) |
@@ -57,61 +57,62 @@
 | `init_done` | `init` | `framework`, `agent_docs[]` (`file`, `result`), `project_json` |
 | `logged_out` | `logout` | `config_path` |
 | `claim_status` | `claim status` | `code`, `status`, `claimed`, `expires_at`, `url`, `claim_url` |
-| `claim_accept` | `claim accept` | `code`, `claim_url`, `opened` — в агентском режиме браузер не открывается, ссылку показать человеку |
+| `claim_accept` | `claim accept` | `code`, `claim_url`, `opened` — in agent mode the browser is not opened; show the link to the person |
 
-События `data_*` (Data API: `layero data …`) описаны в полном справочнике.
+The `data_*` events (Data API: `layero data …`) are described in the full
+reference.
 
-## Коды `error`, которые встречаются при деплое
+## `error` codes seen during a deploy
 
-| `code` | когда | `next_action` |
+| `code` | when | `next_action` |
 |---|---|---|
-| `auth_required` | Нет токена ни в `~/.layero/config.json`, ни в `LAYERO_TOKEN` | `layero login` или задать `LAYERO_TOKEN` |
-| `auth_expired` | `user_code` истёк (15 мин) или сохранённый токен протух (7 дней) / отозван — API ответил 401 | `layero login` ещё раз |
-| `auth_timeout` | 15 минут поллинга без подтверждения | `layero login` ещё раз |
-| `plan_limit` | Лимит тарифа (API 402) | Тариф на `app.layero.ru/billing` или удалить лишнее |
-| `username_required` | У аккаунта не выбрано имя (API 412); в агентском режиме спросить некого | `layero username <имя>` |
-| `username_rejected` | Имя занято или не по формату | Строчные латинские, цифры, дефис, 2–32 символа |
-| `oauth_unavailable` | Провайдер входа недоступен | Позже |
-| `project_unknown` | Вне каталога проекта и без `--project` | Из каталога проекта или `--project <id\|slug>` |
-| `project_not_found` | `--project` на несуществующий проект | `layero projects list` |
-| `cli_deploys_disabled` | CLI-деплои выключены в проекте | Project Settings → CLI deploys |
-| `invalid_type` | Неизвестный `--type` | Убрать флаг или валидный пресет |
-| `invalid_choice` | Невалидный выбор в non-TTY | Явный флаг |
-| `branch_unsupported` | `deploy --branch`: архив всегда идёт в окружение `cli`, флаг превью не даёт. Ничего не загружено | Подключить репозиторий (`projects create --repo`) и пушить в ветку; у проекта с репозиторием в `next_action` — куда пушить |
-| `repo_format` / `account_not_found` / `repo_not_found` / `repo_already_imported` / `source_connect_failed` | `projects create --repo`: формат, нет подключения к провайдеру, репозиторий не виден, уже привязан, привязка сорвалась | `next_action`: `sources list`, `sources connect`, `sources repos`, `link` |
-| `provider_unknown` / `token_missing` / `source_rejected` / `connection_not_found` | `sources connect` / `sources repos` | Список провайдеров, `--token-stdin`, `token_hint` провайдера, `sources list` |
-| `hook_not_found` | `hooks delete` с чужим id | `hooks list` |
-| `claimable_unavailable` | Деплой без аккаунта не включён на платформе | `layero login` или `LAYERO_TOKEN` |
-| `claim_with_project` | `deploy --claim --project <проект>`: песочница создаёт новый проект, в существующий не выкатывает | Существующий проект — `layero login` и без `--claim`; новый сайт — `--claim` без `--project` |
-| `claim_unknown` | Нет заявки в `.layero/project.json`, код неверный или истёк | Передать код; новый — `deploy --claim` |
-| `prebuilt_no_dir` / `prebuilt_no_index` | Папка `--prebuilt` не найдена / без `index.html` | `--prebuilt ./dist` со собранным `index.html` |
-| `deploy_not_started` | Сборка не стартовала | Повторить; если повторяется — проект в панели |
-| `deploy_failed` | Сборка не дошла до `ready` | Логи по ссылке из `next_action` |
-| `deploy_cancelled` | Сборка отменена | — |
-| `rollback_noop` | `layero rollback`: цель отката уже на живом адресе, ничего не изменено | Точечно — `layero promote <sha>`; список — `layero deploys list` |
-| `repeated_failure` | Повтор одной и той же ошибки, платформа отказалась выкатывать вслепую | Устранить причину; если уже устранена — `--confirm-repeated-failure` |
-| `forbidden` | Токену CI (`layero_ci_*`) не хватает scope | Выпустить токен с нужным scope |
-| `org_unknown` | Несколько организаций, команда не знает, в какой работать | `--org <slug>`; список — `layero orgs list` |
-| `confirmation_required` | Команда меняет доступ, а подтвердить в агентском режиме некому; ничего не изменено | Показать план человеку и повторить с `--yes` |
-| `internal` | Непредвиденная ошибка CLI | Перезапустить с `--debug` |
+| `auth_required` | No token in `~/.layero/config.json` or in `LAYERO_TOKEN` | `layero login` or set `LAYERO_TOKEN` |
+| `auth_expired` | `user_code` expired (15 min), or the saved token expired (7 days) / was revoked — the API answered 401 | `layero login` again |
+| `auth_timeout` | 15 minutes of polling without confirmation | `layero login` again |
+| `plan_limit` | Plan limit (API 402) | Upgrade at `app.layero.ru/billing` or delete what is not needed |
+| `username_required` | The account has no name chosen (API 412); in agent mode there is nobody to ask | `layero username <name>` |
+| `username_rejected` | The name is taken or malformed | Lowercase Latin letters, digits, hyphen, 2–32 characters |
+| `oauth_unavailable` | The login provider is unavailable | Later |
+| `project_unknown` | Outside a project directory and without `--project` | Run from the project directory or pass `--project <id\|slug>` |
+| `project_not_found` | `--project` points at a project that does not exist | `layero projects list` |
+| `cli_deploys_disabled` | CLI deploys are switched off in the project | Project Settings → CLI deploys |
+| `invalid_type` | Unknown `--type` | Remove the flag or use a valid preset |
+| `invalid_choice` | Invalid choice in non-TTY | An explicit flag |
+| `branch_unsupported` | `deploy --branch`: an archive always goes to the `cli` environment, the flag gives no preview. Nothing was uploaded | Connect a repository (`projects create --repo`) and push to a branch; for a project with a repository `next_action` says where to push |
+| `repo_format` / `account_not_found` / `repo_not_found` / `repo_already_imported` / `source_connect_failed` | `projects create --repo`: format, no connection to the provider, the repository is not visible, already linked, linking failed | `next_action`: `sources list`, `sources connect`, `sources repos`, `link` |
+| `provider_unknown` / `token_missing` / `source_rejected` / `connection_not_found` | `sources connect` / `sources repos` | Provider list, `--token-stdin`, the provider's `token_hint`, `sources list` |
+| `hook_not_found` | `hooks delete` with someone else's id | `hooks list` |
+| `claimable_unavailable` | Deploy without an account is not enabled on the platform | `layero login` or `LAYERO_TOKEN` |
+| `claim_with_project` | `deploy --claim --project <project>`: the sandbox creates a new project and does not deploy into an existing one | Existing project — `layero login` and no `--claim`; new site — `--claim` without `--project` |
+| `claim_unknown` | No claim in `.layero/project.json`, or the code is wrong or expired | Pass the code; a new one — `deploy --claim` |
+| `prebuilt_no_dir` / `prebuilt_no_index` | The `--prebuilt` folder was not found / has no `index.html` | `--prebuilt ./dist` with a built `index.html` |
+| `deploy_not_started` | The build did not start | Retry; if it repeats — open the project in the dashboard |
+| `deploy_failed` | The build did not reach `ready` | Logs at the link from `next_action` |
+| `deploy_cancelled` | The build was cancelled | — |
+| `rollback_noop` | `layero rollback`: the rollback target is already at the live address, nothing changed | A specific one — `layero promote <sha>`; the list — `layero deploys list` |
+| `repeated_failure` | The same error repeats; the platform refused to deploy blindly | Remove the cause; if it is already removed — `--confirm-repeated-failure` |
+| `forbidden` | The CI token (`layero_ci_*`) lacks a scope | Issue a token with the required scope |
+| `org_unknown` | Several organizations, and the command does not know which one to use | `--org <slug>`; the list — `layero orgs list` |
+| `confirmation_required` | The command changes access, and in agent mode there is nobody to confirm; nothing changed | Show the plan to the person and repeat with `--yes` |
+| `internal` | Unexpected CLI error | Rerun with `--debug` |
 
-Код неуспешного деплоя собирается как `deploy_<status>`, статусов четыре:
-`ready`, `building`, `failed`, `cancelled`. На практике встречаются ровно
-`deploy_failed` и `deploy_cancelled`; кодов `deploy_error` и
-`deploy_timed_out` не существует — не закладывайся на них.
+The code of an unsuccessful deploy is built as `deploy_<status>`, and there
+are four statuses: `ready`, `building`, `failed`, `cancelled`. In practice only
+`deploy_failed` and `deploy_cancelled` occur; the codes `deploy_error` and
+`deploy_timed_out` do not exist — do not rely on them.
 
-## Коды выхода
+## Exit codes
 
-| код | класс | примеры |
+| code | class | examples |
 |---|---|---|
-| 0 | успех | |
-| 1 | прочее | `plan_limit`, `forbidden`, `confirmation_required`, `repeated_failure` |
-| 2 | нужен вход | `auth_required`, `auth_expired`, `auth_timeout` |
-| 3 | не найдено | `project_unknown`, `project_not_found`, `org_unknown`, `hook_not_found`, `claim_unknown` |
-| 4 | неверный ввод | `invalid_type`, `prebuilt_no_dir`, `prebuilt_no_index`, `branch_unsupported`, `claim_with_project`, `repo_format`, `token_missing`, `rollback_noop` |
-| 5 | удалённая ошибка | `deploy_failed`, `deploy_cancelled`, `deploy_not_started`, `internal`, `http_5xx` |
+| 0 | success | |
+| 1 | other | `plan_limit`, `forbidden`, `confirmation_required`, `repeated_failure` |
+| 2 | login needed | `auth_required`, `auth_expired`, `auth_timeout` |
+| 3 | not found | `project_unknown`, `project_not_found`, `org_unknown`, `hook_not_found`, `claim_unknown` |
+| 4 | invalid input | `invalid_type`, `prebuilt_no_dir`, `prebuilt_no_index`, `branch_unsupported`, `claim_with_project`, `repo_format`, `token_missing`, `rollback_noop` |
+| 5 | remote error | `deploy_failed`, `deploy_cancelled`, `deploy_not_started`, `internal`, `http_5xx` |
 
-## Минимальный поведенческий блок
+## Minimal behaviour block
 
 ```text
 If user asks to deploy via Layero:
