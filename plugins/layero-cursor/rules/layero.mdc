@@ -27,6 +27,7 @@ live — (c). Do not turn (b) into (a): `git init` is not needed for a deploy.
 ## CLI
 
 ```bash
+npx layero@latest deploy --dry-run --json   # the build plan; uploads nothing, no login
 npx layero@latest deploy --json
 ```
 
@@ -34,12 +35,13 @@ npx layero@latest deploy --json
 `event` field; do not parse the human-readable text. Inside an agent and with
 a non-TTY stdout the mode switches on by itself.
 
-For an ordinary single app you may run `npx layero@latest init` first: it
-records the detected framework and adds a rules block to `AGENTS.md`. It is
-optional — `deploy` links the folder by itself. **Skip `init`** when the app is
-in a subfolder, is a server, has its own build script with no framework, or is
-`frontend/` + `backend/`: there it only records a wrong guess (see the
-`layero.json` section).
+`--dry-run` prints how the platform will build the folder: framework, build
+command, output folder, where each value comes from (`layero.json`, project
+settings, `package.json`, a framework default) and whether the deploy replaces
+the live site. If its `confident` is `false`, do what `next_action` says before
+the first deploy (details in the `layero.json` section). `npx layero@latest
+init` is optional: it adds a rules block to `AGENTS.md`; it records no
+settings, and `deploy` links the folder by itself.
 
 With a token the whole deploy is one non-interactive command:
 `LAYERO_TOKEN=… npx layero@latest deploy --name <name> --yes --json`.
@@ -53,15 +55,19 @@ Main events:
   CLI waits for the login by itself (polling every 2 s, the token is cached in
   `~/.layero/config.json`). There is no localhost callback — the browser may
   be on another machine; it works from SSH, Docker and sandboxes.
-- `detected` — framework, build command, output folder. Do not override it
-  unless detection is clearly wrong.
+- `detected` — how the CLI sees the folder: framework, build command, output
+  folder, `sources`, `confident`. It is advice — the platform decides from the
+  uploaded files, and the guess is never saved to the project. `confident:
+  false` comes with `hint` and `next_action`: follow them.
 - `build_log` — raw log; forward only the lines with errors.
-- `ready` — `url` = the live address of the site. Show it **as is**, never
-  assemble the host from a template. `dashboard_url` is the dashboard, not the
-  site. `preview_url` is legacy. For a static site the address is live at once;
-  for a container app (runtime, full-stack) `edge_ready: false` means the
-  container is still starting — poll the URL for up to 60 s before handing it over.
-- `error` — a stable `code` and `next_action`. Follow `next_action`.
+- `ready` — `url` = the live address of the site, already answering: the CLI
+  waits (up to 90 s) until the address serves the site instead of a platform
+  page. Show it **as is**, never assemble the host from a template.
+  `dashboard_url` is the dashboard, not the site. `edge_ready: false` means the
+  app never came up — read `npx layero@latest logs --runtime`.
+- `error` — a stable `code` and `next_action`. Follow `next_action` (for a
+  failed build it is `npx layero@latest diagnose --deploy <id>`, which also
+  works without an account).
 
 A repeat deploy is the same command: the first run creates the project, the
 next ones reuse it; no commit is needed between runs. The full list of events,
@@ -157,17 +163,15 @@ When a build or launch fails:
    and that the file produced no warnings.
 5. The same failure twice in a row — stop and tell the person; no third deploy.
 
-Before the first deploy, look at the folder yourself — `init` and the
-`detected` event can be confidently wrong (`static`, `output_dir: "."` with no
-`index.html` at the root means "nothing recognised"): an app in a subfolder →
-`deploy --root <dir>` (but a workspace app that imports a neighbour package →
-deploy from the workspace root with `"framework": "generic"` + `buildCommand` +
-`outputDirectory`); a custom build script with no framework →
-`"framework": "generic"` + `buildCommand` + `outputDirectory` (`static` never
-runs a build); a server → `runtime` + `startCommand` or `deploy -t node_web` /
-`-t python_web`; `frontend/` + `backend/` → the full-stack blocks from the
-reference. After `ready` of a container app, poll the URL for up to 60 s before
-handing it over.
+Before the first deploy, run `npx layero@latest deploy --dry-run --json`. When
+it cannot recognise the folder it says so (`confident: false`) and names the
+shape in `hint` and the fix in `next_action`: an app in a subfolder →
+`--root <dir>`; a workspace app that imports a neighbour package → a
+`layero.json` at the workspace root with `"framework": "generic"` +
+`buildCommand` + `outputDirectory`; a custom build script with no framework →
+`"framework": "generic"` (`static` never runs a build); a server →
+`-t node_web` / `-t python_web`; `frontend/` + `backend/` → the full-stack
+blocks. The shapes and their files are in the reference.
 
 Not fixed by the file: monorepo root → `--root`; deploy from the wrong folder → `cd` or `--root`; Next.js server/export mode → `next.config`; code errors → the code; secrets and env → project variables (`env set`); platform failures → retry once.
 

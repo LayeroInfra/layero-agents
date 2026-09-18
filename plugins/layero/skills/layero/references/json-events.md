@@ -18,19 +18,20 @@ stable `code` and `next_action`.
 | `authorized` | `user` | Login succeeded. |
 | `project_created` | `project_id`, `slug`, `organization` | First deploy in the folder — a project was created. |
 | `project_linked` | `project_id`, `slug` | Deploy into the project from `.layero/project.json`. |
-| `detected` | `framework`, `build_cmd`, `output_dir`, `confident` | Informational. Do not override unless detection is clearly wrong. `confident: false` — static fallback. |
+| `detected` | `framework`, `build_cmd` (null = no build), `output_dir` (null = known after the build), `confident`, `sources`, `hint`, `next_action`, `candidates`, `runtime_kind` | How the CLI sees the folder — advice, never saved to the project. `confident: false` — the folder was not recognised: `hint` names the shape (app in a subfolder, frontend + backend, custom build script, server), `next_action` is the fix — do it before deploying. Values from `layero.json` are already applied here. |
+| `plan` | same as `detected` plus `root`, `project`, `project_settings`, `creates_project`, `replaces_live_site` | `deploy --dry-run` only: the build plan in the builder's order (`layero.json` > project settings > detection). Nothing is uploaded or created; no login needed. |
 | `packing` | `files`, `bytes`, `sha256` | The folder was packed into a tar.gz. |
 | `uploading` / `uploaded` | `archive_key` | Archive upload. |
 | `prebuilt` | `dir` | Deploy of a ready build (`--prebuilt <dir>`); the build on the platform is skipped. |
-| `runtime_type_applied` | `project_type` | The project was identified as a runtime app (`ssr_next`, `node_web`, `python_web`, `streamlit`, `gradio`, `flask`). |
+| `runtime_type_applied` | `project_type` | The project runs as a container app (`ssr_next`, `node_web`, `python_web`, `streamlit`, `gradio`, `flask`) — set on creation or by `--type`. |
 | `runtime_type_apply_failed` | `error` | The type was not set; the deploy goes on with the previous one. |
 | `setup_applied` | — | Project settings were applied on the first deploy. |
 | `repeated_failure_guard` | `streak`, `threshold`, `scope`, `failure_stage`, `error` | Consecutive builds fail with the same error — the platform stopped. Read `error`, remove the cause. It cannot be continued automatically. |
 | `deploy_started` | `deploy_id` | The backend accepted the job. |
-| `stage` | `name`: `clone`/`install`/`build`/`upload`/`activate` | Build stage. |
-| `build_log` | `line`, `stream` | Raw log. Forward only the lines with errors. |
-| `ready` | `url`, `dashboard_url`, `deploy_id` | **Final.** `url` is the live public address: show it as is and stop. `dashboard_url` is the dashboard, not the site. `preview_url` and `edge_eta_seconds` are legacy. `edge_ready: false` on a container app (runtime, full-stack) means the container is still starting: the URL can answer the platform's 404 placeholder for up to a minute — poll it before handing it over. For a static site the URL is live at once. |
-| `claimable` | `project_id`, `slug`, `url`, `claim_url`, `expires_at` | Deploy without an account (`--claim`): a temporary project for 72 hours. Arrives **before** `ready`. Hand the person `claim_url` — only they can take the site over, in the dashboard. |
+| `stage` | `name`: `clone`/`install`/`build`/`upload`/`activate`/… | Build stage; arrives before the first log line of that stage. |
+| `build_log` | `line`, `stream` | Raw log. Forward only the lines with errors. `npm http fetch/cache` lines are hidden (one marker line instead). |
+| `ready` | `url`, `dashboard_url`, `deploy_id`, `edge_ready`, `screen` | **Final.** `url` is the live public address, already answering: the CLI waits (up to 90 s) until it serves the site instead of a platform page. Show it as is and stop. `dashboard_url` is the dashboard, not the site. `edge_ready: false` (with `screen`) — the app never came up: `npx layero@latest logs --runtime`. `preview_url` and `edge_eta_seconds` are legacy. |
+| `claimable` | `project_id`, `slug`, `url`, `claim_url`, `expires_at` | Deploy without an account (`--claim`): a temporary project for 72 hours. Arrives **before** `ready`, on every deploy of that folder. Hand the person `claim_url` — only they can take the site over, in the dashboard. `diagnose` / `logs` in that folder work without an account. |
 | `promoted` | `url`, `deploy_id` | The apex was switched to the deploy (`layero promote`, `deploy --promote`). |
 | `error` | `code`, `next_action`, `message` | Follow `next_action`. |
 
@@ -54,7 +55,7 @@ stable `code` and `next_action`.
 | `project_deleted` | `projects delete --yes` | `project_id`, `slug` |
 | `project_linked` | `link` | `project_id`, `slug`, `url`, `status` |
 | `hooks` / `hook_created` / `hook_deleted` | `hooks *` | `project`, `hooks[]` / `id`, `name`, `branch`, `target`, `url` / `id` |
-| `init_done` | `init` | `framework`, `agent_docs[]` (`file`, `result`), `project_json` |
+| `init_done` | `init` | `framework`, `confident`, `agent_docs[]` (`file`, `result`), `project_json` — `init` records no settings |
 | `logged_out` | `logout` | `config_path` |
 | `claim_status` | `claim status` | `code`, `status`, `claimed`, `expires_at`, `url`, `claim_url` |
 | `claim_accept` | `claim accept` | `code`, `claim_url`, `opened` — in agent mode the browser is not opened; show the link to the person |
@@ -86,8 +87,8 @@ reference.
 | `claim_with_project` | `deploy --claim --project <project>`: the sandbox creates a new project and does not deploy into an existing one | Existing project — `layero login` and no `--claim`; new site — `--claim` without `--project` |
 | `claim_unknown` | No claim in `.layero/project.json`, or the code is wrong or expired | Pass the code; a new one — `deploy --claim` |
 | `prebuilt_no_dir` / `prebuilt_no_index` | The `--prebuilt` folder was not found / has no `index.html` | `--prebuilt ./dist` with a built `index.html` |
-| `deploy_not_started` | The build did not start | Retry; if it repeats — open the project in the dashboard |
-| `deploy_failed` | The build did not reach `ready` | Logs at the link from `next_action` |
+| `deploy_not_started` | The build did not start | Retry; if it repeats — `npx layero@latest diagnose` |
+| `deploy_failed` | The build did not reach `ready` | `npx layero@latest diagnose --deploy <id>` (in `next_action`; works without an account too) |
 | `deploy_cancelled` | The build was cancelled | — |
 | `rollback_noop` | `layero rollback`: the rollback target is already at the live address, nothing changed | A specific one — `layero promote <sha>`; the list — `layero deploys list` |
 | `repeated_failure` | The same error repeats; the platform refused to deploy blindly | Remove the cause; if it is already removed — `--confirm-repeated-failure` |
@@ -116,12 +117,13 @@ are four statuses: `ready`, `building`, `failed`, `cancelled`. In practice only
 
 ```text
 If user asks to deploy via Layero:
-  1. Run: npx layero@latest deploy --json
-  2. Parse each stdout line as JSON, route on .event:
+  1. Run: npx layero@latest deploy --dry-run --json
+     If "detected".confident is false → do what .next_action says first.
+  2. Run: npx layero@latest deploy --json
+  3. Parse each stdout line as JSON, route on .event:
      - "auth_required" → render .url as clickable link, keep waiting
-     - "ready" → show .url (the live site) to user; it is reachable
-                 right away for a static site; for a container app poll the URL
-                 up to 60 s while .edge_ready is false. Then stop.
+     - "ready" → show .url (the live site) to user; it already answers
+                 (.edge_ready true). Then stop.
      - "error" → follow .next_action verbatim
-  3. Never run `git init`. Never run `npm install -g layero`.
+  4. Never run `git init`. Never run `npm install -g layero`.
 ```

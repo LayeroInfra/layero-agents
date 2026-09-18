@@ -11,12 +11,14 @@ It is never a questionnaire.**
 
 Decide in this order:
 
-1. **Look at the folder first.** If it is one of the shapes detection
-   cannot see — app in a subfolder, workspace app with a neighbour package,
-   custom build script with no framework, output folder set by a script flag,
-   a server, `frontend/` + `backend/` (table "When the CLI's own detection is
-   wrong") — configure that shape **before** the first deploy. A deploy that
-   is certain to fail is not a probe, it is a wasted build.
+1. **Look at the plan first:** `npx layero@latest deploy --dry-run --json`
+   (uploads nothing, no login). If `confident` is `false`, the folder is one
+   of the shapes detection cannot settle — app in a subfolder, workspace app
+   with a neighbour package, custom build script with no framework, a server,
+   `frontend/` + `backend/` — and `hint` / `next_action` name it and the fix
+   (table "When the folder is not recognised"). Configure that shape **before**
+   the first deploy. A deploy that is certain to fail is not a probe, it is a
+   wasted build.
 2. **Otherwise deploy with no file.** An ordinary single app (Vite, Next,
    Astro, CRA, SvelteKit, Nuxt, plain HTML…) needs nothing.
 3. **After a failure**, add exactly the field the symptom table names.
@@ -70,7 +72,7 @@ build log.
 | Symptom | Fix |
 |---|---|
 | `собранный сайт не содержит index.html в '.'` · `похоже, раздаётся исходный код репозитория, а не собранный сайт` · `сборка отработала, но папки 'dist' нет. После сборки в каталоге есть: …` · `[output] в 'dist' нет index.html` | `outputDirectory`: the folder that contains `index.html` **after** the build (`dist`, `dist/client`, `dist/<app>/browser`, `.output/public`, `build/client`). The error lists what is on disk — take the path from there. If the project was detected as "Static (no build)" but needs a build, also set `framework` and `buildCommand`. |
-| The log says `static framework: skipping install/build`, and the card says `сборка отработала, но папки '…' нет. После сборки в каталоге есть: src` although your `buildCommand` and `outputDirectory` are correct | **The build never ran.** `framework: "static"` (written by you, or guessed by `init` and shown as `(from hint)`) means *no install and no build*; `buildCommand` is ignored with it. For a project with its own build script and no known framework use `"framework": "generic"` together with `buildCommand` and `outputDirectory`. Do not start changing the output path — the path was never the problem. |
+| `Сборка НЕ запускалась: проект собирается как статический сайт (фреймворк «static») …` ("the build did NOT run") · the log says `[config] ВНИМАНИЕ: buildCommand из layero.json (…) НЕ выполняется` or `static framework: skipping install/build` | **The build never ran.** `framework: "static"` (from the file, the project settings, or detected because the folder holds html and no known framework) means *no install and no build*; `buildCommand` is not run with it — the error names the command that did not run. For a project with its own build script and no known framework use `"framework": "generic"` together with `buildCommand` and `outputDirectory`. Do not start changing the output path — the path was never the problem. `diagnose` answers `next_actions: ["fix_config"]` here: a retry fails the same way. |
 | `npm error Missing script: "build"` · `в package.json нет скрипта «build», а сборка настроена как …. Доступные скрипты: dev, test` · `не знаем, чем собирать этот проект: команда сборки не задана` | `buildCommand` with a script that exists. If the site needs no build at all: `"framework": "static"`. If it is a server or a bot, it is not a static site — see the next row. |
 | A Node or Python server is published as a static site (files are served, nothing runs), or the log says `в приложении больше нет серверной части — дальше оно раздаётся файлами, а не работает в контейнере` about a repo that **is** a server | The platform switches between static and container by itself when it recognises the server (Next without `output: 'export'`, Express, Fastify, FastAPI, Flask, Django…). When it does not, declare it: `"runtime": "node_web"` (or `"python_web"`, `"ssr_next"`), `"startCommand": "node dist/server.js"`, and `"port"` if it is not the default. A top-level `runtime` wins over the project type; the log says `the file wins`. One-off alternative without a file: `npx layero@latest deploy -t node_web`. If the app is in fact static, the type is wrong: redeploy with `-t vite` / `-t static`. |
 | `launch/boot: container failed to start in time` with `ERR_MODULE_NOT_FOUND /app/…`, a missing entry file, or the app listening on `127.0.0.1` | `startCommand`: path relative to `/app`, a file that exists **after** the build, listening on `0.0.0.0` and `$PORT` — e.g. `uvicorn main:app --host 0.0.0.0 --port $PORT`. Set `port` if the app listens elsewhere (defaults: Node 3000, Next 8080, Python 8000, Streamlit 8501, Gradio 7860). An ASGI app needs `uvicorn`, not `gunicorn app:app`. |
@@ -94,41 +96,33 @@ build log.
 | `docker-build: timeout after …s` · `Reached heap limit` · `ENOSPC` | Build limits of the plan. `memory_mb` in the file is the memory of the *running container*, not of the build. |
 | `хост '…' не в списке разрешённых источников` · `git-fetch: timeout after …s` | Source connection in the dashboard. |
 
-## When the CLI's own detection is wrong
+## When the folder is not recognised
 
-`npx layero@latest init` and the `detected` event of `deploy` come from a quick
-local check. They read only `runtime` from `layero.json` (shown as `runtime_kind` in the
-event) and nothing else, and they can be confidently
-wrong. The authoritative answer is the `[config] …` lines of the build log.
+`npx layero@latest deploy --dry-run --json` (and the `detected` event of every
+deploy) shows how the platform will build the folder, with the source of each
+value in `sources`: `layero.json`, `project settings`, `package.json`,
+`framework config`, `framework default`. It is advice, not a decision: the
+platform detects again on the uploaded files, and the CLI never saves its guess
+to the project — only what you name (`--type`, `--root`, `layero.json`, fields
+you write into `.layero/project.json`).
 
-`{"framework":"static","build_cmd":"true","output_dir":".","confident":true}`
-for a folder that has **no `index.html` at its root** means "nothing was
-recognised here", not "this is a static site". Look at the folder yourself:
+`confident: false` means the folder was not recognised. The event then carries
+`hint` (what the CLI saw), `next_action` (one concrete step) and `candidates`
+(app folders below). The shapes, and what `next_action` points to:
 
-| What you see in the folder | What to do |
+| What is in the folder | What to do |
 |---|---|
-| The app is in a subfolder (`apps/web`, `frontend/`, `packages/site`) and is **self-contained** (no `workspace:*` / `file:../` dependencies) | `npx layero@latest deploy --root apps/web` — not a file key, see below |
+| The app is in a subfolder (`apps/web`, `frontend/`, `packages/site`) and is **self-contained** (no `workspace:*` / `file:../` dependencies) | `npx layero@latest deploy --root apps/web` — not a file key, see below. With a single app folder the platform picks it by itself as well; `--root` makes it explicit |
 | The app is in a subfolder and **depends on a neighbour package** of the workspace (`"@scope/shared": "workspace:*"`) | Deploy from the workspace root with `layero.json` there: `"framework": "generic"` + `buildCommand` that builds the neighbour first + `outputDirectory: "apps/web/dist"` — example below. `--root apps/web` would upload the app without its neighbour |
-| The output folder is set by a flag in the build script (`vite build --outDir public_html`), not in the bundler config | `layero.json`: `outputDirectory` only. Detection reads config files, not script flags |
-| `package.json` with a `build` script but no known framework | `layero.json`: `"framework": "generic"`, `buildCommand`, `outputDirectory`. With `generic` write `buildCommand` explicitly — this is the one case where `"npm run build"` belongs in the file |
-| A server (`express`, `fastify`, `http.createServer`, FastAPI…) | `layero.json`: `runtime` + `startCommand`, or `deploy -t node_web` / `-t python_web` |
-| `frontend/` and `backend/` side by side | `layero.json` with both blocks — "Full-stack layout" |
+| `package.json` with a `build` script but no known framework, html only in a source folder | `layero.json`: `"framework": "generic"`, `buildCommand`, `outputDirectory`. Without `generic` the folder is treated as ready-made static files and the build never runs |
+| A server with no known framework (`http.createServer`, a `start` script) | `-t node_web` / `-t python_web`, or `layero.json`: `runtime` + `startCommand` |
+| `frontend/` and `backend/` side by side | `layero.json` with both blocks — "Full-stack layout"; `next_action` already contains the file |
+| The output folder is set by a flag in the build script (`vite build --outDir public_html`) | `layero.json`: `outputDirectory` only. Detection reads config files, not script flags; without the key the platform looks in the framework's default folder and can serve the source `index.html` instead of the build. The CLI names the flag in `hint` |
 
-**Do not run `init` for these shapes** — it has nothing to detect there and
-only records a wrong guess. `deploy` creates the project link by itself.
-
-`init` **and a plain `deploy`** store the guess in `.layero/project.json` as
-`framework_hint` (`init` also writes it into `AGENTS.md`), and the first
-`deploy` saves the guessed build command and output folder as project
-settings. So on a brand-new CLI project the build log shows the CLI's guess as
-`(from hint)` and `(from dashboard)` — nobody opened a dashboard; it is the
-same local guess. A wrong hint is applied to every build. When the guess is wrong, fix or delete `.layero/project.json`
-(the project link is restored by `--project <slug>` or `link`) and correct the
-line in `AGENTS.md`; `layero.json` always wins over the hint.
-
-There is no dry run: the only proof that the platform understood the project
-is the log of a real build. Get the shape right before the first deploy
-instead of probing with repeated deploys.
+A project created by a CLI older than 0.11 may carry that CLI's guess in its
+settings; the build log shows it as `(from hint)` / `(from dashboard)`, and
+`--dry-run` shows it with `sources` = `project settings`. `layero.json`
+always wins over it.
 
 ## What detection already does — leave it alone
 
@@ -316,8 +310,9 @@ After every change, find both of these in the build log
    `[config] install=`…` (from layero.json)`,
    `[config] output=dist/client (from layero.json)`,
    `[config] node=22.x.y (layero.json)` — the Node line has no "from".
-   Any other source means your field was not applied (on a fresh CLI project
-   `(from dashboard)` and `(from hint)` are the CLI's own first guess): `(from dashboard)`,
+   Any other source means your field was not applied (on a project created by
+   a CLI older than 0.11, `(from dashboard)` and `(from hint)` can be that CLI's
+   guess): `(from dashboard)`,
    `(from hint)`, `(auto-detected)`, `(from package.json scripts)`,
    `(from lockfile)`, `(from vite config file)`, `(default for vite)`,
    `(project settings)`, `(.nvmrc)`, `(engines.node)`, `(default)`.
@@ -342,12 +337,10 @@ After every change, find both of these in the build log
    - `[config] node: layero.json перекрыл .nvmrc=…` (informational: you now have two sources)
    - `Фронтенд указан в каталоге …, но такого каталога в репозитории нет` (or `Бэкенд …`; this one fails the build)
 
-**Container apps: `ready` can arrive before the address answers.** For a
-runtime or full-stack project the first request may get the platform's 404
-placeholder for up to a minute while the container starts (`edge_ready: false`
-in the `ready` event). Poll the URL for up to 60 seconds before you hand it to
-the person; a 404 that survives a minute is a real failure — read
-`logs --runtime`.
+**Container apps: `ready` waits for the address.** The CLI (0.11+) emits
+`ready` only once the URL answers with the app instead of a platform page
+(it waits up to 90 s). `edge_ready: false` in `ready` means the app never came
+up — read `npx layero@latest logs --runtime`.
 
 **Lines that look like errors on a successful deploy and are not:**
 `smoke: 2 из 3` / `Бэкенд отвечает по /api/ — код 404` (the probe hit a path
