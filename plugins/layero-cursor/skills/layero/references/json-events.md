@@ -87,6 +87,7 @@
 | `deploy_not_started` | Сборка не стартовала | Повторить; если повторяется — проект в панели |
 | `deploy_failed` | Сборка не дошла до `ready` | Логи по ссылке из `next_action` |
 | `deploy_cancelled` | Сборка отменена | — |
+| `rollback_noop` | `layero rollback`: цель отката уже на живом адресе, ничего не изменено | Точечно — `layero promote <sha>`; список — `layero deploys list` |
 | `repeated_failure` | Повтор одной и той же ошибки, платформа отказалась выкатывать вслепую | Устранить причину; если уже устранена — `--confirm-repeated-failure` |
 | `forbidden` | Токену CI (`layero_ci_*`) не хватает scope | Выпустить токен с нужным scope |
 | `org_unknown` | Несколько организаций, команда не знает, в какой работать | `--org <slug>`; список — `layero orgs list` |
@@ -106,7 +107,7 @@
 | 1 | прочее | `plan_limit`, `forbidden`, `confirmation_required`, `repeated_failure` |
 | 2 | нужен вход | `auth_required`, `auth_expired`, `auth_timeout` |
 | 3 | не найдено | `project_unknown`, `project_not_found`, `org_unknown`, `hook_not_found`, `claim_unknown` |
-| 4 | неверный ввод | `invalid_type`, `prebuilt_no_dir`, `prebuilt_no_index`, `branch_unsupported`, `repo_format`, `token_missing` |
+| 4 | неверный ввод | `invalid_type`, `prebuilt_no_dir`, `prebuilt_no_index`, `branch_unsupported`, `repo_format`, `token_missing`, `rollback_noop` |
 | 5 | удалённая ошибка | `deploy_failed`, `deploy_cancelled`, `deploy_not_started`, `internal`, `http_5xx` |
 
 ## Минимальный поведенческий блок
