@@ -82,9 +82,10 @@ LAYERO_TOKEN=… npx layero@latest deploy --project <slug> --json --yes
 
 Сервер `https://mcp.layero.ru/mcp` (Streamable HTTP), имя в конфиге
 клиента — `layero`. Подключение: `npx -y add-mcp https://mcp.layero.ru/mcp`
-или плагин Claude Code / Cursor из `LayeroInfra/layero-agents`. Вход —
-OAuth (клиент откроет браузер сам при подключении), для CI —
-заголовок `Authorization: Bearer $LAYERO_TOKEN`.
+или плагин Claude Code / Cursor из `LayeroInfra/layero-agents`. Без входа
+доступны `search_docs`, `check_copy`, `refactor_site`; остальное — вход
+через OAuth (клиент откроет браузер при первом вызове инструмента аккаунта)
+или заголовок `Authorization: Bearer $LAYERO_TOKEN` для CI.
 
 Группы инструментов:
 

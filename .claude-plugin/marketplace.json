@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "Официальный маркетплейс Layero. Layero — платформа хостинга и деплоя с серверами сборки в России: репозиторий или папка → сайт, домены, превью-ветки, Data API.",
-    "version": "2.1.1"
+    "version": "2.2.0"
   },
   "plugins": [
     {
       "name": "layero",
       "source": "./plugins/layero",
       "description": "Деплой и эксплуатация сайтов на Layero — хостинге с серверами сборки в России: деплои, домены, переменные окружения, Data API. Навык и MCP-сервер.",
-      "version": "2.1.1",
+      "version": "2.2.0",
       "author": {
         "name": "Layero",
         "url": "https://layero.ru"

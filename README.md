@@ -42,9 +42,11 @@ LAYERO_TOKEN=… npx layero@latest deploy --project <slug> --json --yes
    Навык учит агента трём путям: push в подключённый репозиторий, деплой
    папки через `npx layero@latest deploy --json`, эксплуатация живого сайта.
 2. **MCP-сервер** — `npx -y add-mcp https://mcp.layero.ru/mcp` подключает
-   удалённый сервер (Streamable HTTP) во все установленные клиенты. Вход —
-   OAuth: клиент сам откроет браузер при подключении; для CI — заголовок
-   `Authorization: Bearer $LAYERO_TOKEN`. Локально ничего не запускается.
+   удалённый сервер (Streamable HTTP) во все установленные клиенты. Без входа
+   доступны `search_docs`, `check_copy`, `refactor_site`; остальное — вход
+   через OAuth (клиент откроет браузер при первом вызове инструмента
+   аккаунта) или заголовок `Authorization: Bearer $LAYERO_TOKEN` для CI.
+   Локально ничего не запускается.
 3. **Плагины** — Claude Code (`claude plugin marketplace add LayeroInfra/layero-agents
    && claude plugin install layero@layero`) и Cursor (**Customize → Plugins →
    Add**, репозиторий `LayeroInfra/layero-agents`) ставят навык и MCP одной
@@ -174,8 +176,11 @@ channels:
 1. **Skill** — `npx skills add LayeroInfra/layero-agents` installs
    `skills/layero` into any agent that reads the Agent Skills standard.
 2. **MCP server** — `npx -y add-mcp https://mcp.layero.ru/mcp` adds the remote
-   server (Streamable HTTP) to every installed client. Sign-in is OAuth; the
-   client opens the browser itself. Nothing runs locally.
+   server (Streamable HTTP) to every installed client. `search_docs`,
+   `check_copy` and `refactor_site` work without sign-in; everything else
+   signs in through OAuth (the client opens the browser on the first account
+   tool call) or `Authorization: Bearer $LAYERO_TOKEN` for CI. Nothing runs
+   locally.
 3. **Plugins** — Claude Code (`claude plugin marketplace add LayeroInfra/layero-agents
    && claude plugin install layero@layero`) and Cursor (**Customize → Plugins →
    Add**, repository `LayeroInfra/layero-agents`).
