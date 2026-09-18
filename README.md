@@ -133,15 +133,16 @@ make check   # убедиться, что всё совпадает
 | Дизайн-система | https://github.com/LayeroInfra/design-system | https://gitverse.ru/layero/design-system |
 
 Организация на GitVerse — https://gitverse.ru/layero. Зеркала обновляются
-workflow `mirror-gitverse.yml` в каждом репозитории при push в `main`
-(CLI — из `publish-cli.yml` в `core`); нужны секреты `GITVERSE_LOGIN` и
-`GITVERSE_TOKEN` на уровне организации GitHub.
+workflow `mirror-gitverse.yml` в каждом репозитории при push в `main`;
+README организации (профиль `layero/.gitverse`) — из `LayeroInfra/.github`.
+Секреты `GITVERSE_LOGIN` и `GITVERSE_TOKEN` заданы на уровне организации
+GitHub (видны публичным репозиториям).
 
 ### Пакеты и маркетплейсы
 
 | Площадка | Запись | Обновляется |
 |---|---|---|
-| npm | https://www.npmjs.com/package/layero | публикацией тега `cli-v*` |
+| npm | https://www.npmjs.com/package/layero | тег `v*` в `LayeroInfra/cli` (workflow `publish.yml`) |
 | GitHub Marketplace | https://github.com/marketplace/actions/deploy-to-layero | релизом `deploy-action` |
 | Официальный реестр MCP | `ru.layero/layero` — https://registry.modelcontextprotocol.io/v0.1/servers?search=ru.layero | `mcp-publisher publish` из `mcp/` (бамп версии обязателен) |
 | Claude Code marketplace | `claude plugin marketplace add LayeroInfra/layero-agents` → `layero@layero` | из этого репозитория |
