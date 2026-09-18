@@ -82,6 +82,7 @@
 | `provider_unknown` / `token_missing` / `source_rejected` / `connection_not_found` | `sources connect` / `sources repos` | Список провайдеров, `--token-stdin`, `token_hint` провайдера, `sources list` |
 | `hook_not_found` | `hooks delete` с чужим id | `hooks list` |
 | `claimable_unavailable` | Деплой без аккаунта не включён на платформе | `layero login` или `LAYERO_TOKEN` |
+| `claim_with_project` | `deploy --claim --project <проект>`: песочница создаёт новый проект, в существующий не выкатывает | Существующий проект — `layero login` и без `--claim`; новый сайт — `--claim` без `--project` |
 | `claim_unknown` | Нет заявки в `.layero/project.json`, код неверный или истёк | Передать код; новый — `deploy --claim` |
 | `prebuilt_no_dir` / `prebuilt_no_index` | Папка `--prebuilt` не найдена / без `index.html` | `--prebuilt ./dist` со собранным `index.html` |
 | `deploy_not_started` | Сборка не стартовала | Повторить; если повторяется — проект в панели |
@@ -107,7 +108,7 @@
 | 1 | прочее | `plan_limit`, `forbidden`, `confirmation_required`, `repeated_failure` |
 | 2 | нужен вход | `auth_required`, `auth_expired`, `auth_timeout` |
 | 3 | не найдено | `project_unknown`, `project_not_found`, `org_unknown`, `hook_not_found`, `claim_unknown` |
-| 4 | неверный ввод | `invalid_type`, `prebuilt_no_dir`, `prebuilt_no_index`, `branch_unsupported`, `repo_format`, `token_missing`, `rollback_noop` |
+| 4 | неверный ввод | `invalid_type`, `prebuilt_no_dir`, `prebuilt_no_index`, `branch_unsupported`, `claim_with_project`, `repo_format`, `token_missing`, `rollback_noop` |
 | 5 | удалённая ошибка | `deploy_failed`, `deploy_cancelled`, `deploy_not_started`, `internal`, `http_5xx` |
 
 ## Минимальный поведенческий блок
