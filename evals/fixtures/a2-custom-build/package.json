@@ -1,0 +1,1 @@
+{"name":"brochure","private":true,"scripts":{"build":"node build.mjs"}}

@@ -1,0 +1,13 @@
+{
+  "cases": [
+    {"id": "a1-monorepo",      "group": "shape",    "pain": "app in a subfolder, several candidates", "expect": "A1 works", "where": "js-bundle", "ideal": "deploy --root apps/web, no layero.json"},
+    {"id": "a2-custom-build",  "group": "shape",    "pain": "own build script, no framework, non-standard output folder", "expect": "A2 works", "where": "html", "ideal": "framework generic + buildCommand + outputDirectory"},
+    {"id": "a3-node-server",   "group": "shape",    "pain": "Node server with no start script", "expect": "A3 works", "where": "body", "ideal": "runtime node_web + startCommand (or -t node_web)"},
+    {"id": "a4-fullstack",     "group": "shape",    "pain": "frontend/ + backend/ in one repo", "expect": "A4 backend works", "where": "GET /api/hello", "ideal": "frontend + backend blocks, apiPrefix /api"},
+    {"id": "b1-outdir-flag",   "group": "recovery", "pain": "output folder set by a script flag; stale layero.json with invented keys", "expect": "B1 works", "where": "js-bundle", "ideal": "replace the file with outputDirectory only"},
+    {"id": "b2-ts-server",     "group": "recovery", "pain": "start script points at .ts source; listens on 127.0.0.1", "expect": "B2 works", "where": "body", "ideal": "0.0.0.0 in code + startCommand node dist/index.js"},
+    {"id": "b3-fastapi-entry", "group": "recovery", "pain": "FastAPI app in a non-standard module/variable", "expect": "B3 works", "where": "body", "ideal": "runtime python_web + startCommand uvicorn service.web:api"},
+    {"id": "b4-workspace",     "group": "recovery", "pain": "pnpm workspace app importing a neighbour package", "expect": "B4 works", "where": "js-bundle", "ideal": "workspace root + framework generic + filtered buildCommand + outputDirectory apps/web/dist"},
+    {"id": "b5-type-error",    "group": "recovery", "pain": "code error in the build (TS6133)", "expect": "B5 works", "where": "js-bundle", "ideal": "fix the code, do not touch layero.json or drop the tsc step"}
+  ]
+}

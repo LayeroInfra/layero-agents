@@ -1,0 +1,1 @@
+{"name":"shop-front","private":true,"type":"module","scripts":{"dev":"vite","build":"vite build --outDir public_html"},"devDependencies":{"vite":"^5.4.0"}}
