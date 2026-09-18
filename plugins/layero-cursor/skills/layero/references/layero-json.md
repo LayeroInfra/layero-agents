@@ -11,9 +11,10 @@ It is never a questionnaire.**
 
 Decide in this order:
 
-1. **Look at the folder first.** If it is one of the four shapes detection
-   cannot see — app in a subfolder, custom build script with no framework, a
-   server, `frontend/` + `backend/` (table "When the CLI's own detection is
+1. **Look at the folder first.** If it is one of the shapes detection
+   cannot see — app in a subfolder, workspace app with a neighbour package,
+   custom build script with no framework, output folder set by a script flag,
+   a server, `frontend/` + `backend/` (table "When the CLI's own detection is
    wrong") — configure that shape **before** the first deploy. A deploy that
    is certain to fail is not a probe, it is a wasted build.
 2. **Otherwise deploy with no file.** An ordinary single app (Vite, Next,
@@ -76,7 +77,7 @@ build log.
 | `ERR_UNKNOWN_BUILTIN_MODULE` · `EBADENGINE` · `Node.js v… ERR_INVALID_PACKAGE_CONFIG` · `Node.js 18 снят с поддержки и закрыт для новых сборок` | `"nodeVersion": "22"`. First look at the log line `[config] node=… (…)`: if `.nvmrc` or `engines.node` already sets the version, fix it there — the file would override them and leave two sources of truth. |
 | `npm error code EUSAGE` (lock out of sync) · truncated `npm help ci` output (no lockfile) · `ERR_PNPM_…` | First the repo: commit an up-to-date lockfile and an exact `packageManager`. Only then `installCommand` (`npm install`, `pnpm install --no-frozen-lockfile`). Never write `npm ci` as *your* `installCommand` when there is no lockfile. (With no `installCommand` the platform copes on its own: it runs `npm ci` and falls back to `npm install`; a missing lockfile alone is not a reason to add the key.) |
 | `/bin/sh: 1: run: not found` · `-v: not found` | The command is a fragment. Write the whole command: `npm run build`, not `run build`. |
-| `Can't resolve '@scope/shared'` in a workspace | Build root = workspace root, and `buildCommand` that builds dependencies first: `pnpm --filter @scope/shared build && pnpm --filter @scope/web build`, plus `outputDirectory: "apps/web/dist"`. `Unsupported URL Type "workspace:"` means the lockfile of the workspace manager was not uploaded — commit it. |
+| `Can't resolve '@scope/shared'` in a workspace | Deploy from the **workspace root** (not `--root apps/web`: the neighbour package would not be uploaded) with all three keys — `"framework": "generic"`, `buildCommand` that builds dependencies first (`pnpm --filter @scope/shared build && pnpm --filter @scope/web build`), and `outputDirectory: "apps/web/dist"`. Without `framework` the workspace root is guessed as `static` and the build never runs. Full example: "Minimal examples". `Unsupported URL Type "workspace:"` means the lockfile of the workspace manager was not uploaded — commit it. |
 | Frontend and backend in one repository are deployed as a static site only | The full-stack blocks: `frontend` + `backend` (+ `apiPrefix`). See "Full-stack layout". |
 
 ### What the file does NOT fix
@@ -106,17 +107,22 @@ recognised here", not "this is a static site". Look at the folder yourself:
 
 | What you see in the folder | What to do |
 |---|---|
-| The app is in a subfolder (`apps/web`, `frontend/`, `packages/site`) and the root has no manifest | `npx layero@latest deploy --root apps/web` — not a file key, see below |
+| The app is in a subfolder (`apps/web`, `frontend/`, `packages/site`) and is **self-contained** (no `workspace:*` / `file:../` dependencies) | `npx layero@latest deploy --root apps/web` — not a file key, see below |
+| The app is in a subfolder and **depends on a neighbour package** of the workspace (`"@scope/shared": "workspace:*"`) | Deploy from the workspace root with `layero.json` there: `"framework": "generic"` + `buildCommand` that builds the neighbour first + `outputDirectory: "apps/web/dist"` — example below. `--root apps/web` would upload the app without its neighbour |
+| The output folder is set by a flag in the build script (`vite build --outDir public_html`), not in the bundler config | `layero.json`: `outputDirectory` only. Detection reads config files, not script flags |
 | `package.json` with a `build` script but no known framework | `layero.json`: `"framework": "generic"`, `buildCommand`, `outputDirectory`. With `generic` write `buildCommand` explicitly — this is the one case where `"npm run build"` belongs in the file |
 | A server (`express`, `fastify`, `http.createServer`, FastAPI…) | `layero.json`: `runtime` + `startCommand`, or `deploy -t node_web` / `-t python_web` |
 | `frontend/` and `backend/` side by side | `layero.json` with both blocks — "Full-stack layout" |
 
-**Do not run `init` for these four shapes** — it has nothing to detect there and
+**Do not run `init` for these shapes** — it has nothing to detect there and
 only records a wrong guess. `deploy` creates the project link by itself.
 
-`init` stores its guess in `.layero/project.json` as `framework_hint` and
-writes it into `AGENTS.md`. A wrong hint is then applied to every build as
-`(from hint)`. When the guess is wrong, fix or delete `.layero/project.json`
+`init` **and a plain `deploy`** store the guess in `.layero/project.json` as
+`framework_hint` (`init` also writes it into `AGENTS.md`), and the first
+`deploy` saves the guessed build command and output folder as project
+settings. So on a brand-new CLI project the build log shows the CLI's guess as
+`(from hint)` and `(from dashboard)` — nobody opened a dashboard; it is the
+same local guess. A wrong hint is applied to every build. When the guess is wrong, fix or delete `.layero/project.json`
 (the project link is restored by `--project <slug>` or `link`) and correct the
 line in `AGENTS.md`; `layero.json` always wins over the hint.
 
@@ -196,6 +202,26 @@ A Node server that detection treated as a static site:
 
 ```json
 { "runtime": "node_web", "startCommand": "node dist/server.js", "port": 3000 }
+```
+
+A TypeScript server: the container build installs `devDependencies` and runs
+the `build` script, so point `startCommand` at the **compiled** file, never at
+`.ts` source. `startCommand` alone is enough when the log already says the
+project is a runtime app; add `runtime` when it was published as static files.
+
+```json
+{ "runtime": "node_web", "startCommand": "node dist/index.js" }
+```
+
+A workspace app that imports a neighbour package (file at the workspace root,
+deploy from the workspace root):
+
+```json
+{
+  "framework": "generic",
+  "buildCommand": "pnpm --filter @scope/shared build && pnpm --filter @scope/web build",
+  "outputDirectory": "apps/web/dist"
+}
 ```
 
 A FastAPI app with a non-standard entry point:
@@ -290,7 +316,8 @@ After every change, find both of these in the build log
    `[config] install=`…` (from layero.json)`,
    `[config] output=dist/client (from layero.json)`,
    `[config] node=22.x.y (layero.json)` — the Node line has no "from".
-   Any other source means your field was not applied: `(from dashboard)`,
+   Any other source means your field was not applied (on a fresh CLI project
+   `(from dashboard)` and `(from hint)` are the CLI's own first guess): `(from dashboard)`,
    `(from hint)`, `(auto-detected)`, `(from package.json scripts)`,
    `(from lockfile)`, `(from vite config file)`, `(default for vite)`,
    `(project settings)`, `(.nvmrc)`, `(engines.node)`, `(default)`.

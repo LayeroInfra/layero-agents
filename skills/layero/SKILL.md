@@ -43,6 +43,9 @@ in a subfolder, is a server, has its own build script with no framework, or is
 
 With a token the whole deploy is one non-interactive command:
 `LAYERO_TOKEN=… npx layero@latest deploy --name <name> --yes --json`.
+No account, no token, or the person is away from the keyboard:
+`npx layero@latest deploy --claim --yes --json` — no login at all (details
+below, "No Layero account at all").
 
 Main events:
 
@@ -132,7 +135,7 @@ from the server; without forms — ask in the chat and only then pass
 
 **The file is an answer to one specific problem — one symptom, one field —
 never a questionnaire.** Look at the folder first: an ordinary single app
-deploys with no file at all; the four shapes below are configured before the
+deploys with no file at all; the shapes below are configured before the
 first deploy. Every field you write
 stops being auto-detected and is locked in the dashboard, and an unknown key
 is skipped silently — so never write the file "just in case".
@@ -157,7 +160,9 @@ When a build or launch fails:
 Before the first deploy, look at the folder yourself — `init` and the
 `detected` event can be confidently wrong (`static`, `output_dir: "."` with no
 `index.html` at the root means "nothing recognised"): an app in a subfolder →
-`deploy --root <dir>`; a custom build script with no framework →
+`deploy --root <dir>` (but a workspace app that imports a neighbour package →
+deploy from the workspace root with `"framework": "generic"` + `buildCommand` +
+`outputDirectory`); a custom build script with no framework →
 `"framework": "generic"` + `buildCommand` + `outputDirectory` (`static` never
 runs a build); a server → `runtime` + `startCommand` or `deploy -t node_web` /
 `-t python_web`; `frontend/` + `backend/` → the full-stack blocks from the
