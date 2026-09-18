@@ -34,9 +34,15 @@ npx layero@latest deploy --json
 `event` field; do not parse the human-readable text. Inside an agent and with
 a non-TTY stdout the mode switches on by itself.
 
-If the folder has no `.layero/project.json`, run `npx layero@latest init`
-first: it detects the framework, writes the config and adds a rules block to
-`AGENTS.md`.
+For an ordinary single app you may run `npx layero@latest init` first: it
+records the detected framework and adds a rules block to `AGENTS.md`. It is
+optional — `deploy` links the folder by itself. **Skip `init`** when the app is
+in a subfolder, is a server, has its own build script with no framework, or is
+`frontend/` + `backend/`: there it only records a wrong guess (see the
+`layero.json` section).
+
+With a token the whole deploy is one non-interactive command:
+`LAYERO_TOKEN=… npx layero@latest deploy --name <name> --yes --json`.
 
 Main events:
 
@@ -124,8 +130,10 @@ from the server; without forms — ask in the chat and only then pass
 
 ## `layero.json`
 
-**Deploy first; the file is an answer to one specific failure: one symptom,
-one field.** Most projects go live with no file at all. Every field you write
+**The file is an answer to one specific problem — one symptom, one field —
+never a questionnaire.** Look at the folder first: an ordinary single app
+deploys with no file at all; the four shapes below are configured before the
+first deploy. Every field you write
 stops being auto-detected and is locked in the dashboard, and an unknown key
 is skipped silently — so never write the file "just in case".
 

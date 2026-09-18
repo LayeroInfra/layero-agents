@@ -6,8 +6,19 @@ or launch fails. It is written from production data: 1,269 failed builds over
 
 ## The one rule
 
-**Deploy first without the file. `layero.json` is an answer to one specific
-failure: one symptom, one field.**
+**`layero.json` is an answer to one specific problem: one symptom, one field.
+It is never a questionnaire.**
+
+Decide in this order:
+
+1. **Look at the folder first.** If it is one of the four shapes detection
+   cannot see — app in a subfolder, custom build script with no framework, a
+   server, `frontend/` + `backend/` (table "When the CLI's own detection is
+   wrong") — configure that shape **before** the first deploy. A deploy that
+   is certain to fail is not a probe, it is a wasted build.
+2. **Otherwise deploy with no file.** An ordinary single app (Vite, Next,
+   Astro, CRA, SvelteKit, Nuxt, plain HTML…) needs nothing.
+3. **After a failure**, add exactly the field the symptom table names.
 
 - 84 % of new projects go live on the first build with no file at all.
   Detection already finds the framework, package manager, build script, output
@@ -63,7 +74,7 @@ build log.
 | A Node or Python server is published as a static site (files are served, nothing runs), or the log says `в приложении больше нет серверной части — дальше оно раздаётся файлами, а не работает в контейнере` about a repo that **is** a server | The platform switches between static and container by itself when it recognises the server (Next without `output: 'export'`, Express, Fastify, FastAPI, Flask, Django…). When it does not, declare it: `"runtime": "node_web"` (or `"python_web"`, `"ssr_next"`), `"startCommand": "node dist/server.js"`, and `"port"` if it is not the default. A top-level `runtime` wins over the project type; the log says `the file wins`. One-off alternative without a file: `npx layero@latest deploy -t node_web`. If the app is in fact static, the type is wrong: redeploy with `-t vite` / `-t static`. |
 | `launch/boot: container failed to start in time` with `ERR_MODULE_NOT_FOUND /app/…`, a missing entry file, or the app listening on `127.0.0.1` | `startCommand`: path relative to `/app`, a file that exists **after** the build, listening on `0.0.0.0` and `$PORT` — e.g. `uvicorn main:app --host 0.0.0.0 --port $PORT`. Set `port` if the app listens elsewhere (defaults: Node 3000, Next 8080, Python 8000, Streamlit 8501, Gradio 7860). An ASGI app needs `uvicorn`, not `gunicorn app:app`. |
 | `ERR_UNKNOWN_BUILTIN_MODULE` · `EBADENGINE` · `Node.js v… ERR_INVALID_PACKAGE_CONFIG` · `Node.js 18 снят с поддержки и закрыт для новых сборок` | `"nodeVersion": "22"`. First look at the log line `[config] node=… (…)`: if `.nvmrc` or `engines.node` already sets the version, fix it there — the file would override them and leave two sources of truth. |
-| `npm error code EUSAGE` (lock out of sync) · truncated `npm help ci` output (no lockfile) · `ERR_PNPM_…` | First the repo: commit an up-to-date lockfile and an exact `packageManager`. Only then `installCommand` (`npm install`, `pnpm install --no-frozen-lockfile`). Never `npm ci` without a lockfile. |
+| `npm error code EUSAGE` (lock out of sync) · truncated `npm help ci` output (no lockfile) · `ERR_PNPM_…` | First the repo: commit an up-to-date lockfile and an exact `packageManager`. Only then `installCommand` (`npm install`, `pnpm install --no-frozen-lockfile`). Never write `npm ci` as *your* `installCommand` when there is no lockfile. (With no `installCommand` the platform copes on its own: it runs `npm ci` and falls back to `npm install`; a missing lockfile alone is not a reason to add the key.) |
 | `/bin/sh: 1: run: not found` · `-v: not found` | The command is a fragment. Write the whole command: `npm run build`, not `run build`. |
 | `Can't resolve '@scope/shared'` in a workspace | Build root = workspace root, and `buildCommand` that builds dependencies first: `pnpm --filter @scope/shared build && pnpm --filter @scope/web build`, plus `outputDirectory: "apps/web/dist"`. `Unsupported URL Type "workspace:"` means the lockfile of the workspace manager was not uploaded — commit it. |
 | Frontend and backend in one repository are deployed as a static site only | The full-stack blocks: `frontend` + `backend` (+ `apiPrefix`). See "Full-stack layout". |
@@ -85,7 +96,8 @@ build log.
 ## When the CLI's own detection is wrong
 
 `npx layero@latest init` and the `detected` event of `deploy` come from a quick
-local check. They do **not** read `layero.json`, and they can be confidently
+local check. They read only `runtime` from `layero.json` (shown as `runtime_kind` in the
+event) and nothing else, and they can be confidently
 wrong. The authoritative answer is the `[config] …` lines of the build log.
 
 `{"framework":"static","build_cmd":"true","output_dir":".","confident":true}`
@@ -95,9 +107,12 @@ recognised here", not "this is a static site". Look at the folder yourself:
 | What you see in the folder | What to do |
 |---|---|
 | The app is in a subfolder (`apps/web`, `frontend/`, `packages/site`) and the root has no manifest | `npx layero@latest deploy --root apps/web` — not a file key, see below |
-| `package.json` with a `build` script but no known framework | `layero.json`: `"framework": "generic"`, `buildCommand`, `outputDirectory` |
+| `package.json` with a `build` script but no known framework | `layero.json`: `"framework": "generic"`, `buildCommand`, `outputDirectory`. With `generic` write `buildCommand` explicitly — this is the one case where `"npm run build"` belongs in the file |
 | A server (`express`, `fastify`, `http.createServer`, FastAPI…) | `layero.json`: `runtime` + `startCommand`, or `deploy -t node_web` / `-t python_web` |
 | `frontend/` and `backend/` side by side | `layero.json` with both blocks — "Full-stack layout" |
+
+**Do not run `init` for these four shapes** — it has nothing to detect there and
+only records a wrong guess. `deploy` creates the project link by itself.
 
 `init` stores its guess in `.layero/project.json` as `framework_hint` and
 writes it into `AGENTS.md`. A wrong hint is then applied to every build as
@@ -149,7 +164,7 @@ something. Seen in production and ignored every time: `static`, `headers`,
 | `nodeVersion` (`node`) | build | Node major, e.g. `"22"`. Overrides `.nvmrc` / `engines`. |
 | `runtime` | type | `ssr_next`, `node_web`, `python_web`, `streamlit`, `gradio` (nothing else; `streamlit` / `gradio` require `app.py`): run the app in a container instead of static hosting. At the top level it wins over the project type. |
 | `startCommand` (`start`) | runtime only | Command inside the container, relative to `/app`. Does nothing without a runtime. |
-| `port` | runtime only | Port the app listens on. |
+| `port` | runtime only | Port the app listens on. The platform sets `$PORT` for the container; an app that listens on `$PORT` needs no `port` key. Write it only when the app ignores `$PORT`. |
 | `memory_mb`, `cpu_quota`, `idle_timeout_s`, `preload` | runtime only | Container resources and sleep timeout. |
 | `env` | runtime only | **Non-secret** variables for the container app (build and run); a name set here overrides the project variable of the same name. A static build does not read it. The file is committed to git. |
 | `layout` | shape | `"fullstack"` declares two halves explicitly when detection did not see them. |
@@ -279,10 +294,12 @@ After every change, find both of these in the build log
    `(from hint)`, `(auto-detected)`, `(from package.json scripts)`,
    `(from lockfile)`, `(from vite config file)`, `(default for vite)`,
    `(project settings)`, `(.nvmrc)`, `(engines.node)`, `(default)`.
-   Container build: `runtime build started (kind=node_web)`,
-   `start command: …` (printed without a source — compare the text with your
-   `startCommand`), `install command: … (источник: layero.json)` (Python
+   Container build: `start command: …` (printed without a source — compare
+   the text with your `startCommand`), `install command: … (источник: layero.json)` (Python
    only), `env: N from project, N from layero.json`.
+   Full-stack: `fullstack: frontend='frontend' backend='backend' api_prefix=/api`
+   and `fullstack frontend: install=… build=… output=…` — if these two lines
+   are missing, the layout was not recognised.
 2. **No warnings from the file.** Any of these means the file did not do what
    you think:
    - `[config] layero.json: unknown keys ignored: …`
@@ -304,6 +321,15 @@ placeholder for up to a minute while the container starts (`edge_ready: false`
 in the `ready` event). Poll the URL for up to 60 seconds before you hand it to
 the person; a 404 that survives a minute is a real failure — read
 `logs --runtime`.
+
+**Lines that look like errors on a successful deploy and are not:**
+`smoke: 2 из 3` / `Бэкенд отвечает по /api/ — код 404` (the probe hit a path
+your app has no route for; the deploy is judged by the final status, not by
+this line), `npm warn config production Use --omit=dev` (a platform install
+flag), «сборке фронтенда будут отобраны непубличные переменные … режим warn»
+(informational), «статику раздаёт сам контейнер: не нашли, что выгрузить» on
+the backend half of a full-stack project (the frontend is uploaded by its own
+stage). Do not "fix" them.
 
 Then confirm the result, not the build: `site_status` or `GET` on the address
 from the `ready` event. A green build with a red launch is still a failure.
