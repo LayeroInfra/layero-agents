@@ -149,7 +149,7 @@ GitHub (видны публичным репозиториям).
 | Cursor marketplace | `.cursor-plugin/marketplace.json` этого репозитория | из этого репозитория |
 | skills.sh | https://skills.sh/LayeroInfra/layero-agents | из этого репозитория |
 | Smithery | https://smithery.ai/servers/borisowvalia/layero | **руками**: `npx @smithery/cli mcp publish https://mcp.layero.ru/mcp -n borisowvalia/layero`, описание в Settings |
-| Glama | https://glama.ai/mcp/connectors/ru.layero/layero | из реестра MCP; владение подтверждено файлом https://mcp.layero.ru/.well-known/glama.json |
+| Glama | https://glama.ai/mcp/connectors/ru.layero/layero | из реестра MCP; владение подтверждено файлом https://mcp.layero.ru/.well-known/glama.json (отдаёт код MCP, не убирать). Старый дубликат `ru.layero.mcp/layero` помечен deprecated; его владение держит TXT-запись `_glama-claim.mcp.layero.ru` в зоне `layero.ru` (YC DNS) |
 | cursor.directory | https://cursor.directory/plugins/layero | **руками** на `/plugins/layero/edit` |
 | mcp.so | заявка https://github.com/chatmcp/mcpso/issues/4219 | по заявке |
 | PulseMCP | берёт из реестра MCP | автоматически |
