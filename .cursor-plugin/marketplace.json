@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Official Layero marketplace: deploy and operate sites on hosting with build servers in Russia, straight from the editor.",
-    "version": "2.2.1"
+    "version": "2.3.0"
   },
   "plugins": [
     {
