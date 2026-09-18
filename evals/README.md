@@ -23,6 +23,17 @@ Run it after every change of the skill, `llms.txt`, the docs pages it links to, 
 | 2026-09-18 (baseline) | 961ef44 | 0.10.5 | 3 / 4 (group A only) | 24–42 tool calls; full-stack format found only in minified npm source |
 | 2026-09-18 (round 2) | dc4c62c | 0.10.5 | 4 / 4 (group A) | 10–13 tool calls |
 | 2026-09-18 (recovery) | dc4c62c | 0.10.5 | 4 / 5 (group B) | b4-workspace failed once: recipe lacked `framework: generic` — fixed in 6609886 |
+| 2026-09-19 (MCP only, before) | — | MCP 2.2.1 | 1 / 4 requests | score 5/10: no app folder in `import_repo`, bare UUIDs in the refusal, live API reported as down, no build facts |
+| 2026-09-19 (MCP only, after) | — | MCP 2.3.0 | 4 / 4 requests, 0 failed builds | score 8/10; monorepo frontend and Python API imported on the first build |
+
+## MCP-only variant
+
+The same idea with the MCP server as the only entry point: the agent gets a minimal MCP client (server
+instructions, tool descriptions, schemas, tool calls) and a token with `read` + `deploy` scopes, and four
+user requests: import an app from a monorepo subfolder, import an API server, report the facts of the
+latest build of an existing project, and say whether an API with no `/` route is healthy. Fixture
+repositories: `layero-fixture-services-many`, `layero-fixture-backend-only`, `layero-fixture-express-solo`.
+Measure requests done, failed builds, tool calls and the agent's 1–10 score.
 
 ## How to run
 
