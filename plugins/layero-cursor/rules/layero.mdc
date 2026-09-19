@@ -173,6 +173,11 @@ shape in `hint` and the fix in `next_action`: an app in a subfolder →
 `-t node_web` / `-t python_web`; `frontend/` + `backend/` → the full-stack
 blocks. The shapes and their files are in the reference.
 
+`--dry-run` does not read your code. For any server open the entry file first:
+it must listen on `0.0.0.0` (not `127.0.0.1`) and on `$PORT`, and the start
+command must run a file that exists after the build (`node dist/index.js`, not
+a `.ts` source) — the launch error does not name these causes.
+
 Not fixed by the file: monorepo root → `--root`; deploy from the wrong folder → `cd` or `--root`; Next.js server/export mode → `next.config`; code errors → the code; secrets and env → project variables (`env set`); platform failures → retry once.
 
 No secrets, tokens, domains or ids in the file — it lives in git.

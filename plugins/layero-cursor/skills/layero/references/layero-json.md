@@ -119,6 +119,20 @@ you write into `.layero/project.json`).
 | `frontend/` and `backend/` side by side | `layero.json` with both blocks — "Full-stack layout"; `next_action` already contains the file |
 | The output folder is set by a flag in the build script (`vite build --outDir public_html`) | `layero.json`: `outputDirectory` only. Detection reads config files, not script flags; without the key the platform looks in the framework's default folder and can serve the source `index.html` instead of the build. The CLI names the flag in `hint` |
 
+**Server checklist — `--dry-run` does not read your code.** A recognised
+server (`confident: true`) can still fail at `launch`, and the error text
+(«Приложение не успело запуститься за 30с», `container failed to start in
+time`) does not name the cause. Open the entry file before the first deploy:
+
+1. It listens on `0.0.0.0`, not `127.0.0.1` / `localhost`
+   (`app.listen(port, "0.0.0.0")`, `uvicorn --host 0.0.0.0`). This is a code
+   change; no `layero.json` key fixes it.
+2. It reads the port from `$PORT` (`process.env.PORT`), or `port` in
+   `layero.json` names the port it really uses.
+3. The start command runs a file that exists **after** the build: a TypeScript
+   server starts as `node dist/index.js`, never `node server/index.ts`. If the
+   `start` script in `package.json` is wrong, set `startCommand`.
+
 A project created by a CLI older than 0.11 may carry that CLI's guess in its
 settings; the build log shows it as `(from hint)` / `(from dashboard)`, and
 `--dry-run` shows it with `sources` = `project settings`. `layero.json`
