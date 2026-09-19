@@ -29,6 +29,7 @@ stable `code` and `next_action`.
 | `repeated_failure_guard` | `streak`, `threshold`, `scope`, `failure_stage`, `error` | Consecutive builds fail with the same error — the platform stopped. Read `error`, remove the cause. It cannot be continued automatically. |
 | `deploy_started` | `deploy_id` | The backend accepted the job. |
 | `stage` | `name`: `clone`/`install`/`build`/`upload`/`activate`/… | Build stage; arrives before the first log line of that stage. |
+| `queued` | `waited_s` | The build is waiting for a builder; printed every 15 s until the first `stage`. Not a failure — keep waiting. |
 | `build_log` | `line`, `stream` | Raw log. Forward only the lines with errors. `npm http fetch/cache` lines are hidden (one marker line instead). |
 | `ready` | `url`, `dashboard_url`, `deploy_id`, `edge_ready`, `screen` | **Final.** `url` is the live public address, already answering: the CLI waits (up to 90 s) until it serves the site instead of a platform page. Show it as is and stop. `dashboard_url` is the dashboard, not the site. `edge_ready: false` (with `screen`) — the app never came up: `npx layero@latest logs --runtime`. `preview_url` and `edge_eta_seconds` are legacy. |
 | `claimable` | `project_id`, `slug`, `url`, `claim_url`, `expires_at` | Deploy without an account (`--claim`): a temporary project for 72 hours. Arrives **before** `ready`, on every deploy of that folder. Hand the person `claim_url` — only they can take the site over, in the dashboard. `diagnose` / `logs` in that folder work without an account. |
