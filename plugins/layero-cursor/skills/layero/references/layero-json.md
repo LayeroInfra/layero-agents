@@ -133,8 +133,10 @@ time`) does not name the cause. Open the entry file before the first deploy:
    server starts as `node dist/index.js`, never `node server/index.ts`. If the
    `start` script in `package.json` is wrong, set `startCommand`.
 
-A project created by a CLI older than 0.11 may carry that CLI's guess in its
-settings; the build log shows it as `(from hint)` / `(from dashboard)`, and
+A project created by a CLI older than 0.11 — or imported from a repository by
+`projects create --repo` before CLI 0.11.4 or by MCP `import_repo` before
+2.3.1 — may carry that tool's guess in its settings; the build log shows it
+as `(from hint)` / `(from dashboard)`, and
 `--dry-run` shows it with `sources` = `project settings`. `layero.json`
 always wins over it.
 
@@ -167,7 +169,10 @@ Only these names exist. **An unknown key does not fail the build: it is
 silently skipped with a warning**, and you will believe you configured
 something. Seen in production and ignored every time: `static`, `headers`,
 `type`, `dir`, `build_cmd`, `output_dir`, `start_cmd`, `install_cmd`,
-`rootDirectory`, `framework: "node"`.
+`rootDirectory`, `framework: "node"`. `type` is the one written by analogy
+with the `--type` flag: use `framework` for a framework name and `runtime`
+for a container type (`node_web`, `python_web`, …); `deploy --dry-run` warns
+about `type` in `layero_warnings` before anything is uploaded.
 
 | Key (short alias) | Applies to | Meaning |
 |---|---|---|
@@ -325,8 +330,9 @@ After every change, find both of these in the build log
    `[config] output=dist/client (from layero.json)`,
    `[config] node=22.x.y (layero.json)` — the Node line has no "from".
    Any other source means your field was not applied (on a project created by
-   a CLI older than 0.11, `(from dashboard)` and `(from hint)` can be that CLI's
-   guess): `(from dashboard)`,
+   a CLI older than 0.11, or imported from a repository by a CLI older than
+   0.11.4 or MCP older than 2.3.1, `(from dashboard)` and `(from hint)` can be
+   that tool's guess): `(from dashboard)`,
    `(from hint)`, `(auto-detected)`, `(from package.json scripts)`,
    `(from lockfile)`, `(from vite config file)`, `(default for vite)`,
    `(project settings)`, `(.nvmrc)`, `(engines.node)`, `(default)`.

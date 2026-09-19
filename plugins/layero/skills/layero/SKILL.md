@@ -114,9 +114,10 @@ Tool groups:
 
 - **account and projects** — `whoami`, `my_projects`, `list_sources`
   (providers and connections), `import_repo` (a project from a repository —
-  path (a) without the dashboard; it applies the detected settings and starts
-  the first build by itself, like the «Начать деплой» button in the
-  dashboard — field `setup`: `applied` / `pending` / `failed`;
+  path (a) without the dashboard; it finishes the setup wizard and starts
+  the first build by itself, without pinning the detected framework, build
+  command or output folder (the builder detects them from the repository on
+  every build) — field `setup`: `applied` / `pending` / `failed`;
   `deploy=false` leaves the project in the setup wizard; the provider token
   is connected by the person in the dashboard, not by the agent),
   `project_create` (an empty project for a later `publish_site`),

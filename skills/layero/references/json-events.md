@@ -18,14 +18,14 @@ stable `code` and `next_action`.
 | `authorized` | `user` | Login succeeded. |
 | `project_created` | `project_id`, `slug`, `organization` | First deploy in the folder — a project was created. |
 | `project_linked` | `project_id`, `slug` | Deploy into the project from `.layero/project.json`. |
-| `detected` | `framework`, `build_cmd` (null = no build), `output_dir` (null = known after the build), `confident`, `sources`, `hint`, `next_action`, `candidates`, `runtime_kind` | How the CLI sees the folder — advice, never saved to the project. `confident: false` — the folder was not recognised: `hint` names the shape (app in a subfolder, frontend + backend, custom build script, server), `next_action` is the fix — do it before deploying. Values from `layero.json` are already applied here. |
+| `detected` | `framework`, `build_cmd` (null = no build), `output_dir` (null = known after the build), `confident`, `sources`, `hint`, `next_action`, `candidates`, `runtime_kind`, `layero_warnings` | How the CLI sees the folder — advice, never saved to the project. `confident: false` — the folder was not recognised: `hint` names the shape (app in a subfolder, frontend + backend, custom build script, server), `next_action` is the fix — do it before deploying. Values from `layero.json` are already applied here. `layero_warnings` — keys of `layero.json` the platform will not apply, with the right name (`"type"` → `"framework"` or `"runtime"`). |
 | `plan` | same as `detected` plus `root`, `project`, `project_settings`, `creates_project`, `replaces_live_site` | `deploy --dry-run` only: the build plan in the builder's order (`layero.json` > project settings > detection). Nothing is uploaded or created; no login needed. |
 | `packing` | `files`, `bytes`, `sha256` | The folder was packed into a tar.gz. |
 | `uploading` / `uploaded` | `archive_key` | Archive upload. |
 | `prebuilt` | `dir` | Deploy of a ready build (`--prebuilt <dir>`); the build on the platform is skipped. |
 | `runtime_type_applied` | `project_type` | The project runs as a container app (`ssr_next`, `node_web`, `python_web`, `streamlit`, `gradio`, `flask`) — set on creation or by `--type`. |
 | `runtime_type_apply_failed` | `error` | The type was not set; the deploy goes on with the previous one. |
-| `setup_applied` | — | Project settings were applied on the first deploy. |
+| `setup_applied` | — | Project settings accepted. Only what you named explicitly (`--type`, your own `.layero/project.json`) is written; everything else the builder decides from the archive on every build. |
 | `repeated_failure_guard` | `streak`, `threshold`, `scope`, `failure_stage`, `error` | Consecutive builds fail with the same error — the platform stopped. Read `error`, remove the cause. It cannot be continued automatically. |
 | `deploy_started` | `deploy_id` | The backend accepted the job. |
 | `stage` | `name`: `clone`/`install`/`build`/`upload`/`activate`/… | Build stage; arrives before the first log line of that stage. |
@@ -45,7 +45,7 @@ stable `code` and `next_action`.
 | `project_created` | `projects create --repo` | same as for a deploy, plus `url`, `repo`, `branch` |
 | `source_connected` | `sources connect`, `projects create` | `org`, `connection_id`, `provider`, `account` |
 | `webhook_installed` / `webhook_unavailable` | `projects create` | `project`, `url` (a GitHub App has no `url` field: the webhook is part of the installation); `webhook_unavailable` also has `hint`. Without a webhook a push does not build — tell the person and give them `url` for manual setup. |
-| `setup_applied` | `projects create` | `project`, `framework`, `build_cmd`, `output_dir`, `layero_found`. The command applied the detected settings by itself — like the «Начать деплой» button in the dashboard; `deploy_started` follows |
+| `setup_applied` | `projects create` | `project`, `framework`, `build_cmd`, `output_dir`, `layero_found`. The command finished the setup wizard by itself; `deploy_started` follows. `framework`/`build_cmd`/`output_dir` are what detection saw, for information: they are NOT written into the project — the builder detects them from the repository on every build (CLI 0.11.4+) |
 | `deploy_started` | `projects create`, `deploy` | `deploy_id`; for `projects create` also `project`, `url`. The first build is running — continue with `deploys list --project <slug>` or MCP `site_status` |
 | `setup_pending` | `projects create --no-deploy` | `project`, `url`, `hint`. The project is left in the setup wizard: there will be no builds until the person finishes the setup at `url` |
 | `setup_failed` | `projects create` | `project`, `reason`, `url`, `hint`. The project **is created** (exit 0), but detection, setup or the build start failed — tell the person to finish in the dashboard at `url` |
