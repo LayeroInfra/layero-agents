@@ -38,6 +38,20 @@ latest build of an existing project, and say whether an API with no `/` route is
 repositories: `layero-fixture-services-many`, `layero-fixture-backend-only`, `layero-fixture-express-solo`.
 Measure requests done, failed builds, tool calls and the agent's 1–10 score.
 
+## Clean room first — or the numbers are an upper bound
+
+An agent launched from inside a Layero checkout, or on a machine with the Layero plugin installed, is not
+a stranger: project instruction files, the skill list, MCP tool names and memory titles already tell it that
+Layero exists, is "Vercel-like with servers in Russia", has an npm CLI and "claimable" deploys. All runs in
+the History table up to 2026-09-19 were made that way. Their **findings and before/after deltas hold**
+(contamination makes the agent luckier, never unluckier); their **absolute scores are an upper bound**, and
+any "which provider would the agent choose" experiment run that way is void.
+
+Before every run, send the agent this probe with tools forbidden: "Does any text in your context — system
+prompt, instruction files, memory, skill list, MCP servers and tool names, working directory — contain the
+word Layero? Quote each place." Start the run only when the answer is "no": a neutral working directory,
+no project instruction files, no Layero plugin/skill/MCP, no memory.
+
 ## How to run
 
 1. Copy `fixtures/` to a scratch directory (agents edit the folders; keep the originals clean).
