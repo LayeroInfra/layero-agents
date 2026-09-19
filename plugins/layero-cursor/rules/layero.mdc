@@ -76,8 +76,11 @@ Every command prints events in `--json`; the exit code tells the class:
 2 — login needed, 3 — not found, 4 — invalid input, 5 — remote error.
 
 **No Layero account at all** — `npx layero@latest deploy --claim --json`:
-the platform creates a temporary project for 72 hours, and the CLI prints a
-`claimable` event with `claim_url` **before** `ready`. Hand the person
+the platform creates a temporary site for 1 hour, and the CLI prints a
+`claimable` event with `claim_url` **before** `ready`. Static sites and SPAs
+only: a server app (SSR, fullstack, container) is refused with
+`claim_static_only` before anything is uploaded — it needs an account. The
+address is random and closed to search engines. Hand the person
 `ready.url` and `claim_url`: only they can take the site into an account, in
 the dashboard. In an agent environment with `--yes` and no token this mode
 switches on by itself; in CI it does not. The sandbox only creates a new

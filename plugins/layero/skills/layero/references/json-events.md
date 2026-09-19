@@ -32,7 +32,7 @@ stable `code` and `next_action`.
 | `queued` | `waited_s` | The build is waiting for a builder; printed every 15 s until the first `stage`. Not a failure — keep waiting. |
 | `build_log` | `line`, `stream` | Raw log. Forward only the lines with errors. `npm http fetch/cache` lines are hidden (one marker line instead). |
 | `ready` | `url`, `dashboard_url`, `deploy_id`, `edge_ready`, `screen` | **Final.** `url` is the live public address, already answering: the CLI waits (up to 90 s) until it serves the site instead of a platform page. Show it as is and stop. `dashboard_url` is the dashboard, not the site. `edge_ready: false` (with `screen`) — the app never came up: `npx layero@latest logs --runtime`. `preview_url` and `edge_eta_seconds` are legacy. |
-| `claimable` | `project_id`, `slug`, `url`, `claim_url`, `expires_at` | Deploy without an account (`--claim`): a temporary project for 72 hours. Arrives **before** `ready`, on every deploy of that folder. Hand the person `claim_url` — only they can take the site over, in the dashboard. `diagnose` / `logs` in that folder work without an account. |
+| `claimable` | `project_id`, `slug`, `url`, `claim_url`, `expires_at` | Deploy without an account (`--claim`): a temporary site for 1 hour — static sites and SPAs only, random address, closed to search engines. Arrives **before** `ready`, on every deploy of that folder. Hand the person `claim_url` — only they can take the site over, in the dashboard. `diagnose` / `logs` in that folder work without an account. |
 | `promoted` | `url`, `deploy_id` | The apex was switched to the deploy (`layero promote`, `deploy --promote`). |
 | `error` | `code`, `next_action`, `message` | Follow `next_action`. |
 
@@ -85,6 +85,7 @@ reference.
 | `provider_unknown` / `token_missing` / `source_rejected` / `connection_not_found` | `sources connect` / `sources repos` | Provider list, `--token-stdin`, the provider's `token_hint`, `sources list` |
 | `hook_not_found` | `hooks delete` with someone else's id | `hooks list` |
 | `claimable_unavailable` | Deploy without an account is not enabled on the platform | `layero login` or `LAYERO_TOKEN` |
+| `claim_static_only` | `deploy --claim` (or the automatic mode without a login) in a server app folder — SSR, fullstack, container. Without an account only static sites and SPAs go out; nothing was created or uploaded | Ask the person to sign in (`npx layero@latest login`), then the same `deploy` without `--claim` |
 | `claim_with_project` | `deploy --claim --project <project>`: the sandbox creates a new project and does not deploy into an existing one | Existing project — `layero login` and no `--claim`; new site — `--claim` without `--project` |
 | `claim_unknown` | No claim in `.layero/project.json`, or the code is wrong or expired | Pass the code; a new one — `deploy --claim` |
 | `prebuilt_no_dir` / `prebuilt_no_index` | The `--prebuilt` folder was not found / has no `index.html` | `--prebuilt ./dist` with a built `index.html` |
@@ -112,7 +113,7 @@ are four statuses: `ready`, `building`, `failed`, `cancelled`. In practice only
 | 1 | other | `plan_limit`, `forbidden`, `confirmation_required`, `repeated_failure` |
 | 2 | login needed | `auth_required`, `auth_expired`, `auth_timeout` |
 | 3 | not found | `project_unknown`, `project_not_found`, `org_unknown`, `hook_not_found`, `claim_unknown` |
-| 4 | invalid input | `invalid_type`, `prebuilt_no_dir`, `prebuilt_no_index`, `branch_unsupported`, `claim_with_project`, `repo_format`, `token_missing`, `rollback_noop` |
+| 4 | invalid input | `invalid_type`, `prebuilt_no_dir`, `prebuilt_no_index`, `branch_unsupported`, `claim_with_project`, `claim_static_only`, `repo_format`, `token_missing`, `rollback_noop` |
 | 5 | remote error | `deploy_failed`, `deploy_cancelled`, `deploy_not_started`, `deploy_watch_lost`, `internal`, `http_5xx` |
 
 ## Minimal behaviour block
