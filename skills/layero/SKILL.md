@@ -120,11 +120,17 @@ Tool groups:
   `deploy=false` leaves the project in the setup wizard; the provider token
   is connected by the person in the dashboard, not by the agent),
   `project_create` (an empty project for a later `publish_site`),
-  `list_environments` (branches with addresses and latest builds);
-- **site** — `site_status`, `env_vars`, `read_site`, `site_screenshot`,
+  `list_environments` (branches with addresses and latest builds),
+  `project_settings` (read or change the app folder, commands, output folder
+  and project type — the way out when detection was wrong; an app in a
+  monorepo subfolder is imported with `import_repo(root_directory=…)`);
+- **site** — `site_status` (`wait_s` waits for a running build, `path` checks
+  a route of an API server), `env_vars`, `read_site`, `site_screenshot`,
   `site_issues`, `refactor_site`, `check_copy`, `check_performance`;
 - **deploys** — `list_deploys`, `deploy_logs`, `diagnose_deploy`,
-  `retry_deploy`, `cancel_deploy`, `rollback`, `publish_site`
+  (`build_facts`: what the build really used), `retry_deploy`
+  (`redeploy=true` rebuilds the latest commit without a push),
+  `cancel_deploy`, `rollback`, `publish_site`
   (the old name `publish_landing` is a deprecated alias);
 - **domains and analytics** — `connect_domain`, `check_domain`,
   `list_domains`, `connect_analytics`, `site_analytics`;
