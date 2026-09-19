@@ -27,7 +27,7 @@ Run it after every change of the skill, `llms.txt`, the docs pages it links to, 
 | 2026-09-19 (public entries) | 1d60ca2 | 0.11.1 | 3 / 3 (b1, b3, b4) | Every fix came from `deploy --dry-run` `next_action`; b4-workspace passed on the first deploy (failed once on 0.10.5). ~27 tool calls, 8/10 |
 | 2026-09-19 (weak model: Haiku) | f76d664 | 0.11.2 | 4 / 5 (a1, a2, b2, b4, b5) | score 7/10, ~4 tool calls per case; b2 needed 3 deploys: one transient `fetch failed` (fixed in CLI 0.11.3) and one real `127.0.0.1` launch failure the agent did not pre-empt. b5 passed vacuously: the fixture compiled (no `export {}` → file was a script, TS6133 not raised) — fixed after this run |
 | 2026-09-19 **clean room**, CLI | 640570d | 0.11.4 | 4 / 4 (a1, a3, b3, b5), token | score 8/10, 19 tool calls total; every shape solved by `deploy --dry-run` `next_action`; Node container build 5 min |
-| 2026-09-19 **clean room**, MCP only | — | MCP 2.4.0 | 4 / 4 requests, 0 failed builds | score 7/10; `site_status` race right after `ready`, `publish_site` url empty (T-20260919-5) |
+| 2026-09-19 **clean room**, MCP only | — | MCP 2.4.0 | 4 / 4 requests, 0 failed builds | score 7/10; `site_status` race right after `ready`, `publish_site` url empty (T-20260919-8) |
 | 2026-09-19 **clean room**, discovery | — | — | RU: Layero not found in 13 queries (chose Amvera); EN: found at #8, deployed | see the audit, section 10.6 |
 | 2026-09-19 (MCP only, before) | — | MCP 2.2.1 | 1 / 4 requests | score 5/10: no app folder in `import_repo`, bare UUIDs in the refusal, live API reported as down, no build facts |
 | 2026-09-19 (MCP only, after) | — | MCP 2.3.0 | 4 / 4 requests, 0 failed builds | score 8/10; monorepo frontend and Python API imported on the first build |
