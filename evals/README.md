@@ -52,6 +52,17 @@ prompt, instruction files, memory, skill list, MCP servers and tool names, worki
 word Layero? Quote each place." Start the run only when the answer is "no": a neutral working directory,
 no project instruction files, no Layero plugin/skill/MCP, no memory.
 
+A working clean room with Claude Code (verified 2026-09-19: the probe answers "none"):
+
+```bash
+mkdir -p /tmp/ax-cleanroom/run && cd /tmp/ax-cleanroom/run   # fixtures copied here
+claude -p --setting-sources local --strict-mcp-config --dangerously-skip-permissions "$(cat prompt.txt)" > report.md
+```
+
+`--setting-sources local` drops user-level settings and with them the installed `layero` plugin;
+`--strict-mcp-config` drops MCP servers; a directory outside any Layero checkout has no instruction
+files and no memory. Pass `LAYERO_TOKEN` in the environment only for runs that need an account.
+
 ## How to run
 
 1. Copy `fixtures/` to a scratch directory (agents edit the folders; keep the originals clean).
