@@ -88,6 +88,7 @@ reference.
 | `claim_unknown` | No claim in `.layero/project.json`, or the code is wrong or expired | Pass the code; a new one — `deploy --claim` |
 | `prebuilt_no_dir` / `prebuilt_no_index` | The `--prebuilt` folder was not found / has no `index.html` | `--prebuilt ./dist` with a built `index.html` |
 | `deploy_not_started` | The build did not start | Retry; if it repeats — `npx layero@latest diagnose` |
+| `deploy_watch_lost` | The CLI lost the build log (network failures in a row); the build keeps running on the platform | Do NOT deploy again: `npx layero@latest deploys list --json`, then `logs --deploy <id>` |
 | `deploy_failed` | The build did not reach `ready` | `npx layero@latest diagnose --deploy <id>` (in `next_action`; works without an account too) |
 | `deploy_cancelled` | The build was cancelled | — |
 | `rollback_noop` | `layero rollback`: the rollback target is already at the live address, nothing changed | A specific one — `layero promote <sha>`; the list — `layero deploys list` |
@@ -111,7 +112,7 @@ are four statuses: `ready`, `building`, `failed`, `cancelled`. In practice only
 | 2 | login needed | `auth_required`, `auth_expired`, `auth_timeout` |
 | 3 | not found | `project_unknown`, `project_not_found`, `org_unknown`, `hook_not_found`, `claim_unknown` |
 | 4 | invalid input | `invalid_type`, `prebuilt_no_dir`, `prebuilt_no_index`, `branch_unsupported`, `claim_with_project`, `repo_format`, `token_missing`, `rollback_noop` |
-| 5 | remote error | `deploy_failed`, `deploy_cancelled`, `deploy_not_started`, `internal`, `http_5xx` |
+| 5 | remote error | `deploy_failed`, `deploy_cancelled`, `deploy_not_started`, `deploy_watch_lost`, `internal`, `http_5xx` |
 
 ## Minimal behaviour block
 
