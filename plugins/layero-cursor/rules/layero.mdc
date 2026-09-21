@@ -82,12 +82,13 @@ only: a server app (SSR, fullstack, container) is refused with
 `claim_static_only` before anything is uploaded — it needs an account. The
 address is random and closed to search engines. Hand the person
 `ready.url` and `claim_url`: only they can take the site into an account, in
-the dashboard. In an agent environment with `--yes` and no token this mode
-switches on by itself; in CI it does not. The sandbox only creates a new
-project: with `--project`, or in a folder linked to an account project,
-no token means `auth_required` — show the person `url` and `user_code` and
-wait for the login. `--claim` together with `--project` is the
-`claim_with_project` error.
+the dashboard. The mode turns on ONLY with `--claim`: without it and without
+a token `deploy` asks for a login (`auth_required`) — show the person `url`
+and `user_code` and wait. Publishing without an account is the person's
+decision, not yours: use `--claim` when they asked for it or agreed. The
+sandbox only creates a new project: `--claim` together with `--project` is the
+`claim_with_project` error. Taking the site into an account clears the
+environment variables, deploy hooks and build settings set up without one.
 
 ### CI
 

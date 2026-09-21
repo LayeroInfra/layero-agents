@@ -87,7 +87,7 @@ reference.
 | `claimable_unavailable` | Deploy without an account is not enabled on the platform | `layero login` or `LAYERO_TOKEN` |
 | `claim_static_only` | `deploy --claim` (or the automatic mode without a login) in a server app folder — SSR, fullstack, container. Without an account only static sites and SPAs go out; nothing was created or uploaded | Ask the person to sign in (`npx layero@latest login`), then the same `deploy` without `--claim` |
 | `claim_with_project` | `deploy --claim --project <project>`: the sandbox creates a new project and does not deploy into an existing one | Existing project — `layero login` and no `--claim`; new site — `--claim` without `--project` |
-| `claim_unknown` | No claim in `.layero/project.json`, or the code is wrong or expired | Pass the code; a new one — `deploy --claim` |
+| `claim_unknown` | No claim for the folder's project (kept in `~/.layero/config.json`), or the code is wrong or expired | Pass the code; a new one — `deploy --claim` |
 | `prebuilt_no_dir` / `prebuilt_no_index` | The `--prebuilt` folder was not found / has no `index.html` | `--prebuilt ./dist` with a built `index.html` |
 | `deploy_not_started` | The build did not start | Retry; if it repeats — `npx layero@latest diagnose` |
 | `deploy_watch_lost` | The CLI lost the build log (network failures in a row); the build keeps running on the platform | Do NOT deploy again: `npx layero@latest deploys list --json`, then `logs --deploy <id>` |
