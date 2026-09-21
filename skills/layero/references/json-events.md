@@ -85,6 +85,8 @@ reference.
 | `provider_unknown` / `token_missing` / `source_rejected` / `connection_not_found` | `sources connect` / `sources repos` | Provider list, `--token-stdin`, the provider's `token_hint`, `sources list` |
 | `hook_not_found` | `hooks delete` with someone else's id | `hooks list` |
 | `claimable_unavailable` | Deploy without an account is not enabled on the platform | `layero login` or `LAYERO_TOKEN` |
+| `sandbox_claimed` | Another `deploy` in a sandbox folder, but the person already took the site into an account; the sandbox token is revoked | Ask the person to sign in with that account (`npx layero@latest login`), then the same `deploy` |
+| `sandbox_expired` | Another `deploy` in a sandbox folder, but the hour ran out and the sandbox was deleted; the dead link is removed | New sandbox — `deploy --claim` (with the person's consent); to keep a site — sign in |
 | `claim_static_only` | `deploy --claim` (or the automatic mode without a login) in a server app folder — SSR, fullstack, container. Without an account only static sites and SPAs go out; nothing was created or uploaded | Ask the person to sign in (`npx layero@latest login`), then the same `deploy` without `--claim` |
 | `claim_with_project` | `deploy --claim --project <project>`: the sandbox creates a new project and does not deploy into an existing one | Existing project — `layero login` and no `--claim`; new site — `--claim` without `--project` |
 | `claim_unknown` | No claim for the folder's project (kept in `~/.layero/config.json`), or the code is wrong or expired | Pass the code; a new one — `deploy --claim` |
@@ -111,8 +113,8 @@ are four statuses: `ready`, `building`, `failed`, `cancelled`. In practice only
 |---|---|---|
 | 0 | success | |
 | 1 | other | `plan_limit`, `forbidden`, `confirmation_required`, `repeated_failure` |
-| 2 | login needed | `auth_required`, `auth_expired`, `auth_timeout` |
-| 3 | not found | `project_unknown`, `project_not_found`, `org_unknown`, `hook_not_found`, `claim_unknown` |
+| 2 | login needed | `auth_required`, `auth_expired`, `auth_timeout`, `sandbox_claimed` |
+| 3 | not found | `sandbox_expired`, `project_unknown`, `project_not_found`, `org_unknown`, `hook_not_found`, `claim_unknown` |
 | 4 | invalid input | `invalid_type`, `prebuilt_no_dir`, `prebuilt_no_index`, `branch_unsupported`, `claim_with_project`, `claim_static_only`, `repo_format`, `token_missing`, `rollback_noop` |
 | 5 | remote error | `deploy_failed`, `deploy_cancelled`, `deploy_not_started`, `deploy_watch_lost`, `internal`, `http_5xx` |
 
