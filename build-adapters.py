@@ -2,7 +2,7 @@
 """Генерирует адаптеры из канона. Единственный способ менять plugins/*,
 server.json, .mcp.json, маркетплейсы и блок установки в README.
 
-Канон: skills/layero/, mcp.json, agents-install.json, assets/logo.svg,
+Канон: skills/*/ (главный — skills/layero/), mcp.json, agents-install.json, assets/logo.svg,
 README.md вне маркеров <!-- install:start --> … <!-- install:end -->.
 
 Запуск: python3 build-adapters.py [--out DIR]
@@ -19,7 +19,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 
-VERSION = "2.4.0"
+VERSION = "2.5.0"
 MCP_NAME = "layero"
 OWNER = {"name": "Layero", "url": "https://layero.ru"}
 HOMEPAGE = "https://docs.layero.ru/agents/"
@@ -101,17 +101,24 @@ def dump(obj) -> bytes:
 
 
 def read_canon():
-    skill_dir = ROOT / "skills" / "layero"
-    skill_files = {
-        p.relative_to(skill_dir).as_posix(): p.read_bytes()
-        for p in sorted(skill_dir.rglob("*")) if p.is_file()
-    }
-    if "SKILL.md" not in skill_files:
+    # Каждая папка в skills/ — отдельный навык; главный — `layero`, из него же
+    # правило Cursor. Второй — `layero-content-rules` (правила против фишинга).
+    skills: dict[str, dict[str, bytes]] = {}
+    for skill_dir in sorted(p for p in (ROOT / "skills").iterdir() if p.is_dir()):
+        files = {
+            p.relative_to(skill_dir).as_posix(): p.read_bytes()
+            for p in sorted(skill_dir.rglob("*")) if p.is_file()
+        }
+        if "SKILL.md" not in files:
+            sys.exit(f"нет skills/{skill_dir.name}/SKILL.md")
+        skills[skill_dir.name] = files
+    if "layero" not in skills:
         sys.exit("нет skills/layero/SKILL.md")
     return {
         "mcp": json.loads((ROOT / "mcp.json").read_text(encoding="utf-8")),
         "install": json.loads((ROOT / "agents-install.json").read_text(encoding="utf-8")),
-        "skill": skill_files,
+        "skill": skills["layero"],
+        "skills": skills,
         "logo": (ROOT / "assets" / "logo.svg").read_bytes(),
         "readme": (ROOT / "README.md").read_text(encoding="utf-8"),
     }
@@ -208,8 +215,9 @@ def generate() -> dict[str, bytes]:
         "name": "layero", "description": DESCRIPTION_RU, "version": VERSION, **plugin_meta,
     })
     out["plugins/layero/.mcp.json"] = dump(mcp_with_token(mcp))
-    for rel, data in skill.items():
-        out[f"plugins/layero/skills/layero/{rel}"] = data
+    for name, files in canon["skills"].items():
+        for rel, data in files.items():
+            out[f"plugins/layero/skills/{name}/{rel}"] = data
 
     # Cursor
     out[".cursor-plugin/marketplace.json"] = dump({
@@ -225,8 +233,9 @@ def generate() -> dict[str, bytes]:
         "description": DESCRIPTION_EN, **plugin_meta, "logo": "assets/logo.svg",
     })
     out["plugins/layero-cursor/mcp.json"] = dump(mcp_for_cursor(mcp))
-    for rel, data in skill.items():
-        out[f"plugins/layero-cursor/skills/layero/{rel}"] = data
+    for name, files in canon["skills"].items():
+        for rel, data in files.items():
+            out[f"plugins/layero-cursor/skills/{name}/{rel}"] = data
     out["plugins/layero-cursor/rules/layero.mdc"] = cursor_rule(skill["SKILL.md"])
     out["plugins/layero-cursor/assets/logo.svg"] = canon["logo"]
 

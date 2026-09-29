@@ -12,6 +12,7 @@
 | Файл | Что это |
 |---|---|
 | `skills/layero/SKILL.md` + `references/` | Единый навык: что такое Layero, три пути, CLI, MCP, `layero.json`, git-провайдеры |
+| `skills/layero-content-rules/SKILL.md` | Правила против фишинга (`layero.ru/rules`) чек-листом для агента; источник — `core/docs/legal/PHISHING-RULES.md`, при расхождении прав он |
 | `mcp.json` | Как подключить MCP-сервер (`https://mcp.layero.ru/mcp`) |
 | `agents-install.json` | Команды установки по клиентам; копии в `frontend/landing` и `layero-docs` сверяются гейтом |
 | `SOUL.md` | Принципы поведения агента, отдаётся сервером как `layero://soul` |

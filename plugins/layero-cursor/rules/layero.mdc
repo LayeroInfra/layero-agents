@@ -131,7 +131,8 @@ Tool groups:
   monorepo subfolder is imported with `import_repo(root_directory=…)`);
 - **site** — `site_status` (`wait_s` waits for a running build, `path` checks
   a route of an API server), `env_vars`, `read_site`, `site_screenshot`,
-  `site_issues`, `refactor_site`, `check_copy`, `check_performance`;
+  `site_issues`, `refactor_site`, `check_copy`, `check_performance`,
+  `check_rules` (the anti-phishing rules, see below);
 - **deploys** — `list_deploys`, `deploy_logs`, `diagnose_deploy`,
   (`build_facts`: what the build really used), `retry_deploy`
   (`redeploy=true` rebuilds the latest commit without a push),
@@ -199,6 +200,16 @@ GitHub, GitVerse, GitLab, GitFlic, SourceCraft — all are connected in the
 dashboard through «Импорт из репозитория». A push to a branch is a preview
 environment, a push to `main` is production. Differences between providers —
 [references/git-providers.md](../skills/layero/references/git-providers.md).
+
+## Content rules
+
+Every site on Layero must follow the anti-phishing rules
+(`https://layero.ru/rules`): no collecting credentials of other services, no
+fake warnings, no scam lures, no brand impersonation, no hidden redirects, no
+malware. After a deploy `publish_site` and `site_status` add `rules_warnings`
+only when the site matches a rule — then tell the user first and do not help
+get past the check; no field means nothing to say. The checklist and what the
+platform does on a match — the `layero-content-rules` skill.
 
 ## Never
 
