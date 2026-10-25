@@ -141,7 +141,9 @@ Tool groups:
 - **domains and analytics** — `connect_domain`, `check_domain`,
   `list_domains`, `connect_analytics`, `site_analytics`;
 - **Data API** — `data_api_status`, `data_api_methods`, `data_api_grant`,
-  `data_api_keys`, `data_api_origins`, `data_api_probe`.
+  `data_api_keys`, `data_api_origins`, `data_api_probe`. The full path
+  «database → table with RLS → sign-in → files» (CLI steps, what only the
+  person enables, roles as in Supabase, limits) — `references/data-api.md`.
 
 These require the person's explicit consent: `rollback` (changes what
 visitors see), `data_api_grant` (opens access to data), `data_api_keys` with
