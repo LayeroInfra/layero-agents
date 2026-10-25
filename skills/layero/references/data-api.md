@@ -14,7 +14,7 @@ them answers `402` with an upgrade offer — tell the person, do not retry.
 
 | Step | Who | How |
 |---|---|---|
-| 1. Database | agent | `npx layero@latest db create <name> --json` — the password comes ONCE, inside `connection_string` only; the event's `secrets` field lists what to mask. One free shared database per organization. |
+| 1. Database | agent | `npx layero@latest db create <name> --json` — the password comes ONCE, inside `connection_string` only; the event's `secrets` field lists what to mask. Databases are a Pro feature: the plan includes one shared database per organization (on Free, `db create` is refused). |
 | 2. Connect it to the project | agent | `npx layero@latest db connect <database> --project <project>` — the project gets the connection string and the Data API address and public key in its build. |
 | 3. Data API | agent | `npx layero@latest data enable --db <database>` — everything stays closed until access is granted. |
 | 4. Tables, RLS, grants | agent | `npx layero@latest db sql <database> -c "<sql>"` — a script of several statements runs as one transaction. |
@@ -74,6 +74,8 @@ Only the public key `pk_live_…` goes to the browser; the secret `sk_live_…`
 lives on the server.
 
 ## Limits per database (Free / Pro)
+
+The Free column applies only to organizations in the beta list — otherwise Free cannot enable the Data API at all.
 
 Requests per day 50,000 / 1,000,000 (then `429 quota_exceeded` until 00:00
 UTC); sign-in users 10,000 / 100,000 (then new sign-ups are refused); file
