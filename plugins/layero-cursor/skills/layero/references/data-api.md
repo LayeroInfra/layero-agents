@@ -54,6 +54,10 @@ No `grant` lines are needed — access works exactly as in Supabase:
   only, `to authenticated` to signed-in users only.
 - **`service_role` (the secret key) bypasses RLS** — it sees and changes every
   row, so it lives on a server only.
+- **`supabase.rpc("name")` calls functions in `public`** (and `api`); a new one
+  needs no grant. The response is the result itself, as in PostgREST. A
+  function callable only through `PUBLIC` is closed — the refusal names the
+  `GRANT`.
 - **`localhost` works as a return address** for sign-in links and OAuth
   (`emailRedirectTo: "http://localhost:5173"`), as long as the database's
   «localhost» switch in «Доступ» is on (default).
