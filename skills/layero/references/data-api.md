@@ -16,7 +16,7 @@ them answers `402` with an upgrade offer — tell the person, do not retry.
 |---|---|---|
 | 1. Database | agent | `npx layero@latest db create <name> --json` — the password comes ONCE, inside `connection_string` only; the event's `secrets` field lists what to mask. Databases are a Pro feature: the plan includes one shared database per organization (on Free, `db create` is refused). |
 | 2. Connect it to the project | agent | `npx layero@latest db connect <database> --project <project>` — the project gets the connection string and the Data API address and public key in its build. |
-| 3. Data API | agent | `npx layero@latest data enable --db <database>` — everything stays closed until access is granted. |
+| 3. Data API | agent | `npx layero@latest data enable --db <database>` — as in Supabase: new tables in `public` are open to the roles, RLS decides the rows. |
 | 4. Tables, RLS, grants | agent | `npx layero@latest db sql <database> -c "<sql>"` — a script of several statements runs as one transaction. |
 | 5. Sign-in | **person** | Dashboard: Databases → the database → «Авторизация» → «Включить авторизацию». Neither the CLI nor MCP enables it: ask the person and wait. |
 | 6. Files | **person** | Dashboard: Databases → the database → «Файлы» → «Включить файлы». |
@@ -40,21 +40,23 @@ create table public.notes (
 alter table public.notes enable row level security;
 create policy "own notes" on public.notes for all to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());
-grant select, insert, update, delete on public.notes to authenticated;
 ```
 
-Differences from Supabase you must account for:
+No `grant` lines are needed — access works exactly as in Supabase:
 
-- **No default grants.** A new table is closed over HTTP until you `GRANT` it
-  (or run `npx layero@latest data grant public.notes --get user --post user`).
-  Without a grant the API answers `401`/`403` with code `42501` and a `hint`
-  saying how to open it — that is a missing grant, not a missing table.
-  `404 unknown_table` means the table really does not exist.
-- **The signed-in role also gets what is open to `anon`.** A `to anon` policy
-  applies to signed-in users too.
-- **`service_role` does not bypass RLS.** The secret key sees rows only
-  through policies `to service_role` (add `using (true)` if the server must
-  see everything).
+- **Default privileges.** A new table, sequence or function in `public` is
+  open to `anon`, `authenticated` and `service_role` by itself; RLS decides
+  the rows. **Enable RLS on every table at once** — a table without RLS gives
+  every row to anyone with the public key, and `npx layero@latest data
+  methods` warns about it. Tables created without RLS before 26.10.2026 stay
+  closed: enable RLS, then `npx layero@latest data grant <table> --get visitor`.
+- **Guest and signed-in are different roles.** `to anon` applies to guests
+  only, `to authenticated` to signed-in users only.
+- **`service_role` (the secret key) bypasses RLS** — it sees and changes every
+  row, so it lives on a server only.
+- **`localhost` works as a return address** for sign-in links and OAuth
+  (`emailRedirectTo: "http://localhost:5173"`), as long as the database's
+  «localhost» switch in «Доступ» is on (default).
 - **Email confirmation is on** for newly enabled sign-in, as in Supabase:
   `signUp` returns no session until the link in the email is followed. The
   person can switch it off in «Авторизация» → «Подтверждать почту».
