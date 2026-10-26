@@ -64,6 +64,13 @@ No `grant` lines are needed — access works exactly as in Supabase:
 - **Email confirmation is on** for newly enabled sign-in, as in Supabase:
   `signUp` returns no session until the link in the email is followed. The
   person can switch it off in «Авторизация» → «Подтверждать почту».
+- **Test users — through the admin API with the secret key**, as in
+  Supabase: `supabase.auth.admin.createUser({ email, password,
+  email_confirm: true })` creates a confirmed user that can sign in right
+  away; `auth.admin.updateUserById(id, { password })` changes one. Run it
+  from a server or a script, never from the browser: the secret key bypasses
+  RLS. With email confirmation on, this is the way to get test users without
+  a mailbox.
 
 ## Client
 
