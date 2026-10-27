@@ -98,6 +98,9 @@ size 50 MB; file storage 1 GB / 100 GB.
 
 `data_api_status`, `data_api_methods`, `data_api_grant`, `data_api_keys`,
 `data_api_origins`, `data_api_probe` read and change access to an enabled
-Data API. Creating a database, SQL and enabling the API go through the CLI
+Data API. `data_api_buckets` lists and creates storage buckets;
+`data_api_auth` shows sign-in methods and providers and sets the sender name
+of sign-in emails. Provider secrets never go through the chat — the person
+sets them in the dashboard or with `layero data auth provider set`. Creating a database, SQL and enabling the API go through the CLI
 (steps 1–4); sign-in and files — through the person (steps 5–6).
 `data_api_grant`, key changes and origins need the person's explicit consent.
