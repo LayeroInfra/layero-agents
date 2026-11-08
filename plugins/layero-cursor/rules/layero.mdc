@@ -137,7 +137,9 @@ Tool groups:
   (`build_facts`: what the build really used), `retry_deploy`
   (`redeploy=true` rebuilds the latest commit without a push),
   `cancel_deploy`, `rollback`, `publish_site`
-  (the old name `publish_landing` is a deprecated alias);
+  (the old name `publish_landing` is a deprecated alias), `download_source`
+  (a 5-minute link to a ZIP of what an uploaded build was made from;
+  `npx layero@latest source` in the CLI saves the file);
 - **domains and analytics** — `connect_domain`, `check_domain`,
   `list_domains`, `connect_analytics`, `site_analytics`;
 - **Data API** — `data_api_status`, `data_api_methods`, `data_api_grant`,

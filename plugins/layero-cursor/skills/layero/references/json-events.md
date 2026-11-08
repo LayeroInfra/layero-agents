@@ -96,6 +96,9 @@ reference.
 | `deploy_failed` | The build did not reach `ready` | `npx layero@latest diagnose --deploy <id>` (in `next_action`; works without an account too) |
 | `deploy_cancelled` | The build was cancelled | — |
 | `rollback_noop` | `layero rollback`: the rollback target is already at the live address, nothing changed | A specific one — `layero promote <sha>`; the list — `layero deploys list` |
+| `source_not_kept` | `layero source`: the build's sources are no longer kept (uploads are stored 7 days, the live build while it is live) | Tell the person; a new upload stores the folder again |
+| `source_in_repository` | `layero source`: the build was made from a repository, the platform keeps no copy; the commit link is in `next_action` | Give the person the commit link |
+| `file_exists` | `layero source`: the file already exists | `--out <path>` or `--force` |
 | `repeated_failure` | The same error repeats; the platform refused to deploy blindly | Remove the cause; if it is already removed — `--confirm-repeated-failure` |
 | `forbidden` | The CI token (`layero_ci_*`) lacks a scope | Issue a token with the required scope |
 | `org_unknown` | Several organizations, and the command does not know which one to use | `--org <slug>`; the list — `layero orgs list` |
