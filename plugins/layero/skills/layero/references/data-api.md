@@ -92,7 +92,7 @@ The Free column applies only to organizations in the beta list — otherwise Fre
 
 Per organization per billing period, counted across all of its databases
 (limits take effect on Free from December 1, 2026, on Pro from the first
-renewal on or after December 15, 2026):
+renewal on or after December 16, 2026; extra usage from December 16, 2026):
 
 - **Calls** 1 M / 10 M a month. Failed calls through our fault (5xx) and
   limit refusals (429) don't count. Above the limit: Pro with extra usage
