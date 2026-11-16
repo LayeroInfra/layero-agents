@@ -86,13 +86,27 @@ export const db = createClient(
 Only the public key `pk_live_…` goes to the browser; the secret `sk_live_…`
 lives on the server.
 
-## Limits per database (Free / Pro)
+## Limits (Free / Pro)
 
 The Free column applies only to organizations in the beta list — otherwise Free cannot enable the Data API at all.
 
-Requests per day 50,000 / 1,000,000 (then `429 quota_exceeded` until 00:00
-UTC); sign-in users 10,000 / 100,000 (then new sign-ups are refused); file
-size 50 MB; file storage 1 GB / 100 GB.
+Per organization per billing period, counted across all of its databases
+(limits take effect on Free from December 1, 2026, on Pro from the first
+renewal on or after December 15, 2026):
+
+- **Calls** 1 M / 10 M a month. Failed calls through our fault (5xx) and
+  limit refusals (429) don't count. Above the limit: Pro with extra usage
+  on pays 20 ₽ per 1 M from the balance; otherwise `429` until the new
+  period. Direct Postgres connections keep working.
+- **File storage** 1 GB / 10 GB on average over the month (5 GB kept for
+  half a month is 2.5 GB), 100 GB at most on Pro. Above the limit: Pro with
+  extra usage on pays 10 ₽ per GB; otherwise new uploads are refused and
+  existing files are still served.
+
+Also: calls per day 50,000 / 1,000,000 per organization as spike protection
+(then `429 quota_exceeded` until 00:00 UTC); sign-in users per database
+10,000 / 100,000 (then new sign-ups are refused); file size 50 MB.
+Full table of plan limits: https://docs.layero.ru/billing/usage
 
 ## MCP
 
