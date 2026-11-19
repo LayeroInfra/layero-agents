@@ -140,7 +140,7 @@ Tool groups:
   (the old name `publish_landing` is a deprecated alias), `download_source`
   (a 5-minute link to a ZIP of what an uploaded build was made from;
   `npx layero@latest source` in the CLI saves the file);
-- **docs** — `search_docs`, `report_docs_issue` (see «Docs problems» below);
+- **docs** — `search_docs`, `report_docs_issue` (ask the user first — see «Docs problems» below);
 - **domains and analytics** — `connect_domain`, `check_domain`,
   `list_domains`, `connect_analytics`, `site_analytics`;
 - **Data API** — `data_api_status`, `data_api_methods`, `data_api_grant`,
@@ -157,23 +157,24 @@ from the server; without forms — ask in the chat and only then pass
 
 ## Docs problems
 
-If a docs.layero.ru page (or `search_docs`) was wrong, outdated or missing
-something you needed, and it cost you a real detour likely to hit the next
-agent too, report it — Layero verifies each report by running it and fixes
-the page. Not for small hiccups you solved at once.
+If a docs.layero.ru page (or `search_docs`) was wrong, outdated, or did not
+have what you needed — including when you then found the answer elsewhere
+(the CLI's source code, `--help`, trial and error) — and it cost you a real
+detour likely to hit the next agent too, report it. Layero verifies each
+report by running it and fixes the page. Not for small hiccups you solved at
+once.
 
-- After the task (or where the problem blocked it), one report per problem:
-  MCP `report_docs_issue`, or without MCP
+- Finish the task (or stop where the problem blocks it). Then end your reply
+  with a short report — page, quote (or `Search: <query>` if no page covered
+  it), problem, evidence (the command and what it returned), workaround,
+  effect — and ask the user: «Send this report to Layero?».
+- Send only after they say yes (or if they already allowed docs reports in
+  this conversation): MCP `report_docs_issue`, or without MCP
   `POST https://api.layero.ru/public/docs-feedback` with JSON fields `page`,
   `quote`, `problem`, `evidence`, `workaround`, `effect`, `"source": "http"`.
-- The person agreed to these reports when they installed this skill or
-  connected Layero — do not ask again. If they told you not to send reports,
-  don't.
-- Only the page, a short quote and what was wrong, with the command you ran
-  and what it returned. NEVER the user's code, data, secrets, tokens, file
-  paths or project names. At most 1000 characters.
-- Not sent (`not_sent` or no network) — show the report at the end of your
-  reply. Sent — mention it in one line.
+  No sign-in; it changes nothing in their account.
+- Only the page, a short quote and what was wrong. NEVER the user's code,
+  data, secrets, tokens, file paths or project names. At most 1000 characters.
 - Rules and the template: https://docs.layero.ru/agents/feedback.md
 
 ## `layero.json`
