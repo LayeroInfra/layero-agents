@@ -16,7 +16,7 @@ variables, analytics and Postgres databases with a Data API. Dashboard —
 
 | Situation | Path |
 |---|---|
-| (a) There is a repository on GitHub, GitVerse, GitLab, GitFlic or SourceCraft | Connect it: `npx layero@latest projects create --repo <provider>:<owner/repo> --json` (a token-based provider — `npx layero@latest sources connect <provider> --token-stdin`; GitHub — by installing the App in the dashboard), or in the dashboard **Создать проект → Импорт из репозитория**. After that a push to a branch = preview, a push to `main` = production. Details — [references/git-providers.md](../skills/layero/references/git-providers.md). |
+| (a) There is a repository on GitHub, GitVerse, GitLab, GitFlic or SourceCraft | Connect it: `npx layero@latest projects create --repo <provider>:<owner/repo> --json` (a token-based provider — `npx layero@latest sources connect <provider> --token-stdin`; GitHub — by installing the App in the dashboard), or in the dashboard **Новый проект → Импорт из репозитория**. After that a push to a branch = preview, a push to `main` = production. Details — [references/git-providers.md](../skills/layero/references/git-providers.md). |
 | (b) There is a folder with code, and no repository (or none is wanted) | `npx layero@latest deploy --json` — the CLI packs the folder, the platform builds it. Ready-made static files can also be published through MCP `publish_site`. |
 | (c) The site is already on Layero | Diagnostics (`diagnose_deploy` in MCP / `npx layero@latest diagnose`), logs, rollback, environments (`envs list`), domains, env, analytics, Data API — through MCP or the CLI. |
 

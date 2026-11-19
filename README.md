@@ -56,7 +56,7 @@ LAYERO_TOKEN=… npx layero@latest deploy --project <slug> --json --yes
 
 Там, где некому пройти вход в браузере, используется токен `LAYERO_TOKEN`:
 выпустите его на [app.layero.ru/settings/cli](https://app.layero.ru/settings/cli)
-или командой `npx layero@latest token create`. CLI читает переменную сам;
+или командой `npx layero@latest token create ci`. CLI читает переменную сам;
 для MCP плагин Claude Code подставляет её в заголовок
 `Authorization: Bearer ${LAYERO_TOKEN}` (то же делает корневой `.mcp.json`
 при клонировании репозитория). В плагине Cursor заголовка нет: Cursor не
@@ -190,7 +190,7 @@ channels:
 
 Where nobody can sign in through a browser, use `LAYERO_TOKEN`: issue it at
 [app.layero.ru/settings/cli](https://app.layero.ru/settings/cli) or with
-`npx layero@latest token create`.
+`npx layero@latest token create ci`.
 
 ```bash
 LAYERO_TOKEN=… npx layero@latest deploy --project <slug> --json --yes
